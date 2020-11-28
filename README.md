@@ -50,8 +50,6 @@ If you want to know how events transform to tokens, you could download [REMI-tem
     [paper](http://www.terasoft.com.tw/conf/ismir2014/proceedings/T008_121_Paper.pdf)
     [code](https://mir.sechsachtel.de/midi/)
 
-7. [Rule Mining for Local Boundary Detection in Melodies](https://program.ismir2020.net/poster_2-14.html)
-    `music/melody segmentation`
 
 ## Baseline Model
 - Estimating musical time information from performed MIDI files
