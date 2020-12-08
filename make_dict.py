@@ -1,6 +1,5 @@
 import pickle
 
-arr = []
 event2word = {}
 word2event = {}
 cnt = 0
@@ -50,11 +49,10 @@ for i in range(22, 108):
     word2event[cnt] = f'Note On_{i}'
     cnt += 1
 
-arr.append(event2word)
-arr.append(word2event)
+t = (event2word, word2event)
 
 with open('bert_dict.pkl', 'wb') as f:
-    pickle.dump(arr, f)
+    pickle.dump(t, f)
 
 
 print(cnt)
