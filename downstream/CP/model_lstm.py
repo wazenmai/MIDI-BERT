@@ -25,7 +25,7 @@ class Embeddings(nn.Module):
 
 class LSTM_Net(nn.Module):
     # n_vocab: total number in dictionary.pkl
-    def __init__(self, e2w, class_num, input_size=768, hidden_size=256, num_layers=3, dropout=0.6):
+    def __init__(self, e2w, class_num, input_size=768, hidden_size=256, num_layers=3, dropout=0.5):
         """
         input: (batch_size, seq_len, input_size)
         output: (batch_size, seq_len, 3)

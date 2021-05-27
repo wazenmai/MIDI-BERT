@@ -19,6 +19,7 @@ def get_args():
     parser.add_argument('-k', '--ckpt', type=str, required=True)
 
     ### parameter ###
+    parser.add_argument('--hs', type=int, default=256)
     parser.add_argument('--layer', type=str, default='12', help='specify embedding layer index')
     parser.add_argument('-c', '--cuda', default=0, type=int)
     parser.add_argument('-n', '--class_num', type=int)
@@ -65,9 +66,10 @@ def main():
 
     # Load model
     best_mdl = args.ckpt
-    print('Loading model from [{}]...'.format(best_mdl.split('/')[-2]))
+    mode = "finetune" if args.finetune else "LSTM"
+    print('Loading model from [{}/{}]...'.format(mode, best_mdl.split('/')[-2]))
     if args.finetune:
-        model = LSTM_Finetune(class_num=args.class_num)
+        model = LSTM_Finetune(class_num=args.class_num, hidden_size=args.hs)
     else:
         model = LSTM_Net(e2w=e2w, class_num=args.class_num)
     model.load_state_dict(torch.load(best_mdl, map_location='cpu'))    # already is ['state_dict']

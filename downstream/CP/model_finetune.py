@@ -15,7 +15,7 @@ import math
 
 class LSTM_Finetune(nn.Module):
     # n_vocab: total number in dictionary.pkl
-    def __init__(self, class_num, input_size=768, hidden_size=512, num_layers=3, dropout=0.3):
+    def __init__(self, class_num, hidden_size, input_size=768, num_layers=3, dropout=0.5):
         super(LSTM_Finetune, self).__init__()
 
         self.lstm = LSTM(

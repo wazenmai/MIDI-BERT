@@ -36,6 +36,7 @@ def get_args():
     ### parameter setting ###
     parser.add_argument('--layer', type=str, default='12', help='specify embedding layer index')
     parser.add_argument('--class-num', type=int)
+    parser.add_argument('--hs', type=int, default=256)
     parser.add_argument('--train-batch', default=16, type=int)
     parser.add_argument('--dev-batch', default=8, type=int)
     parser.add_argument('--name', type=str, help='Used for output directory name', required=True)
@@ -113,7 +114,7 @@ def main():
     
     print("\ninitializing model...")    
     if args.finetune:
-        model = LSTM_Finetune(class_num=args.class_num)
+        model = LSTM_Finetune(class_num=args.class_num, hidden_size=args.hs)
     else:
         model = LSTM_Net(e2w=e2w, class_num=args.class_num)
     
