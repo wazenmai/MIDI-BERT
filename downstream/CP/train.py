@@ -31,7 +31,7 @@ def training(model, device, train_loader, optimizer, finetune):
         output = np.argmax(y_hat.cpu().detach().numpy(), axis=-1)       
         output = torch.from_numpy(output).to(device).long()     # (batch, seq)
 
-        attn = (x[:,:,0] != 2).float()      # != bar pad word; shape: (16,512)
+        attn = (y != 0).float()      # != bar pad word; shape: (16,512)
         acc = torch.sum((output == y).float() * attn)
         acc /= torch.sum(attn)
         total_acc += acc
@@ -64,7 +64,7 @@ def valid(model, device, valid_loader, finetune):
             output = np.argmax(y_hat.cpu().detach().numpy(), axis=-1)
             output = torch.from_numpy(output).to(device).long()
 
-            attn = (x[:,:,0] != 2).float()      # != bar pad word
+            attn = (y != 0).float()      # != bar pad word; shape: (16,512)
 
             acc = torch.sum((output == y).float() * attn)
             acc /= torch.sum(attn)

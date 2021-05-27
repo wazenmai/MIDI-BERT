@@ -4,7 +4,8 @@ from model_finetune import LSTM_Finetune
 import torch
 import pickle
 import argparse
-
+from sklearn.metrics import confusion_matrix
+from cm_fig import save_cm_fig
 
 def get_args():
     parser = argparse.ArgumentParser(description='Argument Parser for downstream evaluation')
@@ -53,6 +54,9 @@ def load_data(input_file, ans_file, finetune):
         _, _, X_test = np.split(all_data, [int(.8 * len(all_data)), int(.9 * len(all_data))])
         return X_test, y_test
 
+
+
+
 def main():
     args = get_args()
     cuda_num = args.cuda
@@ -96,12 +100,28 @@ def main():
         output = output.astype(float)
         output = torch.from_numpy(output).to(device).long()
 
-        attn = (_X[:,:,0] != 2).float()      # != bar pad word
+        attn = (_y != 0).float()      # != bar pad word
 
         acc = torch.sum((output == _y).float() * attn)
         acc /= torch.sum(attn)
         print('accuracy:', acc.item())
-    
 
+        if args.task == 'melody':
+            target_names = ['melody', 'bridge', 'piano']
+        elif args.task == 'velocity':
+            target_names = ['pp','p','mp','mf','f','ff']
+   
+        output = output.detach().cpu().numpy()
+        _y = _y.detach().cpu().numpy().astype(int)
+        output = output.reshape(-1,1)
+        _y = _y.reshape(-1,1)
+
+        cm = confusion_matrix(_y, output)
+        print(cm)
+        bORf = 'finetune' if args.finetune else 'baseline'
+        _title = 'CP: ' + args.task + ' task (' + bORf + ')'
+        save_cm_fig(cm, classes=target_names, normalize=True,
+                    title=_title)
+        
 if __name__ == '__main__':
     main()
