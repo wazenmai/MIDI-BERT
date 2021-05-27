@@ -5,7 +5,8 @@ Created on Dec 14 2020
 @author: Yi-Hui (Sophia) Chou 
 """
 import os
-from model import LSTM_Net 
+from model_lstm import LSTM_Net 
+from model_finetune import LSTM_Finetune
 from pop_dataset import PopDataset
 from torch.utils.data import DataLoader
 import tqdm
@@ -18,6 +19,7 @@ import time
 from train import training, valid
 import numpy as np
 import argparse
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='Argument Parser for downstream classification')
