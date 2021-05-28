@@ -43,11 +43,14 @@ torch.manual_seed(2021)
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
+    
+    ### mode ###
+    parser.add_argument('-d', '--dataset', choices=['pop909', 'composer'], required=True)
 
     ### path setup ###
     parser.add_argument('--dict-file', type=str, default='dict/remi.pkl')
     parser.add_argument('--data-file', type=str, default='/home/yh1488/NAS-189/home/remi_data/POP909remi.npy')
-    parser.add_argument('--ckpt-path', type=str, default='Remi_best.ckpt')
+    parser.add_argument('--ckpt-path', type=str, default='/home/yh1488/NAS-189/home/BERT/remi_result/pretrain/model-final_best.ckpt')
     parser.add_argument('--layer', type=str, default='12', required=True)
 
     ### parameter setting ###
@@ -123,7 +126,7 @@ class BertForPredictingMiddleNotes(torch.nn.Module):
         return y
 
 
-def extract(model, data):
+def extracting(model, data):
     num_batches = len(data) // (args.batch_size)
     
     model.eval()
@@ -144,6 +147,28 @@ def extract(model, data):
         return outputs
 
 
+def load_pop909():
+    pop909_path='/home/yh1488/NAS-189/home/remi_data/POP909remi.npy'
+    finetune_data = np.load(pop909_path, allow_pickle=True)
+    X_train, X_val, X_test = np.split(finetune_data, [int(.8 * len(finetune_data)), int(.9 * len(finetune_data))])
+    print('   POP train', X_train.shape)
+    print('   POP valid', X_val.shape)
+    print('   POP test', X_test.shape)
+    return X_train, X_val, X_test
+
+
+def load_composer():
+    root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/remi/'
+    X_train = np.load(root+'composer_cp_train.npy', allow_pickle=True)
+    X_val = np.load(root+'composer_cp_valid.npy', allow_pickle=True)
+    X_test = np.load(root+'composer_cp_test.npy', allow_pickle=True)
+    
+    print('   composer train', X_train.shape)
+    print('   composer valid', X_val.shape)
+    print('   composer test', X_test.shape)
+    return X_train, X_val, X_test
+
+
 if __name__ == '__main__':
     # get arguments
     args = get_args()
@@ -158,12 +183,11 @@ if __name__ == '__main__':
         #print(e2w)
 
     print('Loading data...')
-    finetune_data = np.load(args.data_file, allow_pickle=True)
-    X_train, X_val, X_test = np.split(finetune_data, [int(.8 * len(finetune_data)), int(.9 * len(finetune_data))])
-    print('   POP train', X_train.shape)
-    print('   POP valid', X_val.shape)
-    print('   POP test', X_test.shape)
-    
+    if args.dataset == 'pop909':
+        X_train, X_val, X_test = load_pop909()
+    elif args.dataset == 'composer':
+        X_train, X_val, X_test = load_composer()
+
     # shuffle 
 #    index = np.arange(len(X_train))
 #    np.random.shuffle(index)
@@ -178,16 +202,19 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(args.ckpt_path, map_location='cpu'), strict=False)
     
     print('\nExtracting...')
-   
-    root = '/home/yh1488/NAS-189/home/BERT/remi_embed/'
-    outputs = extract(model, X_train)
-    print('POP train embedding shape', outputs.shape)
-    np.save(root+'POPtrain_'+args.layer+'.npy', np.array(outputs))
+    print('   Embedding layer {}, which is hidden [{}]\n'.format(args.layer, index_layer))
 
-    outputs = extract(model, X_val)
-    print('POP valid embedding shape', outputs.shape)
-    np.save(root+'POPvalid_'+args.layer+'.npy', np.array(outputs))
-    
-    outputs = extract(model, X_test)
-    print('POP test embedding shape', outputs.shape)
-    np.save(root+'POPtest_'+args.layer+'.npy', np.array(outputs))
+    root = '/home/yh1488/NAS-189/home/BERT/remi_embed/'
+    name_root = 'POP' if args.dataset == 'pop909' else 'Composer'
+    outputs = extracting(model, X_train)
+    print(name_root,'train embedding shape', outputs.shape)
+    np.save(root + name_root+'train_'+args.layer+'.npy', np.array(outputs))
+
+    outputs = extracting(model, X_val)
+    print(name_root, 'valid embedding shape', outputs.shape)
+    np.save(root + name_root+'valid_'+args.layer+'.npy', np.array(outputs))
+
+    outputs = extracting(model, X_test)
+    print(name_root,'test embedding shape', outputs.shape)
+    np.save(root + name_root+'test_'+args.layer+'.npy', np.array(outputs))
+   
