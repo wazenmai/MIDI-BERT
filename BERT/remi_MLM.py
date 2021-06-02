@@ -46,10 +46,12 @@ def get_args():
 
     ### path setup ###
     parser.add_argument('--dict-file', type=str, default='dict/remi.pkl')
+    parser.add_argument('--name', type=str, default='')
 #    parser.add_argument('--save-path', type=str, required=True)
 
     ### parameter setting ###
     parser.add_argument('--batch-size', type=int, default=4)
+    parser.add_argument('--hs', type=int, default=768)
     parser.add_argument('--mask-percent', type=float, default=0.15, help="Up to `valid_seq_len * target_max_percent` tokens will be masked out for prediction")
     parser.add_argument('--max-seq-len', type=int, default=512, help='all sequences are padded to `max_seq_len`')
     parser.add_argument('--epochs', type=int, default=500, help='number of training epochs')
@@ -293,7 +295,8 @@ if __name__ == '__main__':
     print('device:', device)
 
     configuration = BertConfig(max_position_embeddings=args.max_seq_len,
-                               position_embedding_type="relative_key_query")
+                               position_embedding_type="relative_key_query",
+                               hidden_size=args.hs)
 
     with open(args.dict_file, 'rb') as f:
         e2w, w2e = pickle.load(f)
@@ -306,12 +309,16 @@ if __name__ == '__main__':
     # load data
     POP909_path = '/home/yh1488/NAS-189/home/remi_data/POP909remi.npy'
     POP_data = np.load(POP909_path, allow_pickle=True)
-    POP909_train, _, _ = np.split(POP_data, [int(.8 * len(POP_data)), int(.9 * len(POP_data))])
-    print('POP909-train:', POP909_train.shape)
+    #POP909_train, _, _ = np.split(POP_data, [int(.8 * len(POP_data)), int(.9 * len(POP_data))])
+    print('POP909:', POP_data.shape)
 
     composer_path = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/new_remi/CC_train_remi.npy'
     composer_train = np.load(composer_path, allow_pickle=True)
-    print('composer-train:', composer_train.shape)
+    composer_path = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/new_remi/CC_valid_remi.npy'
+    composer_valid = np.load(composer_path, allow_pickle=True)
+    composer_path = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/new_remi/CC_test_remi.npy'
+    composer_test = np.load(composer_path, allow_pickle=True)
+    print('composer: ({}, {})'.format(composer_train.shape[0]+composer_valid.shape[0]+composer_test.shape[0], composer_train.shape[1]))
 
     remi1700_path = '/home/yh1488/NAS-189/home/remi_data/remi1700.npy'
     remi1700 = np.load(remi1700_path, allow_pickle=True)
@@ -325,8 +332,8 @@ if __name__ == '__main__':
     emopia = np.load(emopia_path, allow_pickle=True)
     print('emopia:', emopia.shape)
     
-    training_data = np.concatenate((composer_train, remi1700, POP909_train, ASAP, emopia), axis=0) 
-    print('  all training data:', training_data.shape)
+    training_data = np.concatenate((composer_train, remi1700, POP_data, composer_valid, ASAP, composer_test, emopia), axis=0) 
+    print('> all training data:', training_data.shape)
 
     # shuffle during training phase
     index = np.arange(len(training_data))
@@ -338,7 +345,7 @@ if __name__ == '__main__':
     print('\nStart pre-training')
     save_dir = '/home/yh1488/NAS-189/home/BERT/remi_result/pretrain/'
     os.makedirs(save_dir, exist_ok=True)
-    filename = save_dir + 'model-final.ckpt'
+    filename = save_dir + 'model-' + args.name + '.ckpt'
 
     Lseq = [i for i in range(args.max_seq_len)]
     optimizer = AdamW(model.parameters(), lr=args.init_lr, weight_decay=0.01)
