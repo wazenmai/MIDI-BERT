@@ -114,9 +114,16 @@ class BertForPredictingMiddleNotes(torch.nn.Module):
         # linear layer to merge embeddings from different token types to feed into transformer-XL
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), bertConfig.d_model)
 
+        self.proj = []
+        self.all_token = 0
+        for i, etype in enumerate(self.e2w):
+            self.proj.append(nn.Linear(bertConfig.d_model, self.n_tokens[i]))
+            self.all_token += self.n_tokens[i]
+        self.proj = nn.ModuleList(self.proj)
+
         # proj: project embeddings to logits for prediction
         class_num = 4 if args.task=="melody" else 5
-        self.proj_linear = nn.Linear(bertConfig.d_model, class_num)
+        self.proj_linear = nn.Linear(self.all_token, class_num)
 
         if freeze:
             for param in self.bert.parameters():
@@ -134,8 +141,13 @@ class BertForPredictingMiddleNotes(torch.nn.Module):
         y = self.bert(inputs_embeds=emb_linear, attention_mask=attn_mask)
         y = y.last_hidden_state         # (batch_size, seq_len, 768)
 
+        ys = []
+        for i, etype in enumerate(self.e2w):
+            ys.append(self.proj[i](y))
+
         # convert embeddings back to logits for prediction
-        y = self.proj_linear(y)
+        ys = torch.cat([*ys], dim=-1)
+        y = self.proj_linear(ys)
         return y
 
 
