@@ -122,7 +122,7 @@ class BertForPredictingMiddleNotes(torch.nn.Module):
         self.proj = nn.ModuleList(self.proj)
 
         # proj: project embeddings to logits for prediction
-        class_num = 4 if args.task=="melody" else 5
+        class_num = 4 if args.task=="melody" else 7
         self.proj_linear = nn.Linear(self.all_token, class_num)
 
         if freeze:
