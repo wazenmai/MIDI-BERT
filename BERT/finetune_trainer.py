@@ -102,20 +102,16 @@ class FinetuneTrainer:
         state = {
             'epoch': epoch + 1,
             'state_dict': self.model.module.state_dict(),
-            #'state_dict': self.midibert.state_dict(),
             'valid_acc': valid_acc,
             'valid_loss': valid_loss,
             'train_loss': train_loss,
             'train_acc': train_acc,
             'optimizer' : self.optim.state_dict()
         }
-#        state2 = {
-#            'state_dict': self.model.module.state_dict()
-#        }
-#        torch.save({'bert': self.midibert.state_dict(), 'cls': self.model.module.state_dictstate, filename)
+        torch.save(state, filename)
 
         best_mdl = filename.split('.')[0]+'_best.ckpt'
         if is_best:
-#            shutil.copyfile(filename, best_mdl)
-            torch.save(state, 'finetune-model.ckpt')
+            shutil.copyfile(filename, best_mdl)
+#            torch.save(state, 'finetune-model.ckpt')
 

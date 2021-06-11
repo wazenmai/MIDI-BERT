@@ -15,14 +15,15 @@ from transformers import BertConfig
 from model import MidiBert
 from finetune_trainer import FinetuneTrainer
 from finetune_dataset import FinetuneDataset
+from finetune_model import FinetuneModel
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
 
     ### mode ###
-    parser.add_argument('--task', choices=['melody', 'velocity', 'composer', 'emotion'], required=True)
+    parser.add_argument('--task', choices=['melody', 'composer', 'emotion'], required=True)
     ### path setup ###
-    parser.add_argument('--dict_file', type=str, default='../dict/compact4/CP.pkl')
+    parser.add_argument('--dict_file', type=str, default='dict/compact4/CP.pkl')
     parser.add_argument('--name', type=str, default='')
     parser.add_argument('--ans_path', type=str)
 
@@ -51,9 +52,6 @@ def get_args():
     if args.task == 'melody':
         args.ans_path = '/home/yh1488/NAS-189/home/CP_data/POP909cp_melans.npy'
         args.class_num = 4
-    elif args.task == 'velocity':
-        args.ans_path = '/home/yh1488/NAS-189/home/CP_data/POP909cp_velans.npy'
-        args.class_num = 7
     elif args.task == 'composer':
         pass
     elif args.task == 'emotion':
@@ -107,7 +105,7 @@ def main():
         e2w, w2e = pickle.load(f)
 
     print("\nLoading Dataset") 
-    if args.task == 'melody' or args.task == 'velocity':
+    if args.task == 'melody':
         dataset = 'pop909' 
     X_train, X_val, X_test = load_data(dataset)
     ans_data = np.load(args.ans_path, allow_pickle=True)
@@ -122,7 +120,7 @@ def main():
     valid_loader = DataLoader(validset, batch_size=args.batch_size, num_workers=args.num_workers)
     print("   len of valid_loader",len(valid_loader))
     test_loader = DataLoader(testset, batch_size=args.batch_size, num_workers=args.num_workers)
-    print("   len of valid_loader",len(test_loader))
+    print("   len of test_loader",len(test_loader))
 
 
     print("\nBuilding BERT model")
@@ -130,52 +128,19 @@ def main():
                                 position_embedding_type='relative_key_query',
                                 hidden_size=args.hs)
 
-    best_mdl = '/home/yh1488/NAS-189/homes/yh1488/BERT/cp_result/pretrain/model-batch12_best.ckpt'
-    checkpoint = torch.load(best_mdl, map_location='cpu')
     midibert = MidiBert(bertConfig=configuration, e2w=e2w, w2e=w2e)
-    midibert.load_state_dict(checkpoint['state_dict'])
-
     
     print("\nCreating Finetune Trainer")
+    best_mdl = 'finetune-model.ckpt'
+    checkpoint = torch.load(best_mdl, map_location='cpu')
+    model = FinetuneModel(midibert, args.class_num, args.hs)
+    model.load_state_dict(checkpoint['state_dict'])
     trainer = FinetuneTrainer(midibert, train_loader, valid_loader, test_loader, args.lr, args.class_num,
-                                args.hs, args.with_cuda, args.cuda_devices)
+                                args.hs, args.with_cuda, args.cuda_devices, model)
+  
     
-    
-    print("\nTraining Start")
-    save_dir = '/home/yh1488/NAS-189/homes/yh1488/BERT/cp_result/finetune/'
-    os.makedirs(save_dir, exist_ok=True)
-    filename = save_dir + 'finetune-' + args.name + '.ckpt'
-    print("   save model at {}".format(filename))
-
-    best_acc, best_epoch = 0, 0
-    bad_cnt = 0
-
-    for epoch in range(args.epochs):
-        if bad_cnt >= 3:
-            print('valid acc not improving for 3 epochs')
-            break
-        train_loss, train_acc = trainer.train()
-        valid_loss, valid_acc = trainer.valid()
-        test_loss, test_acc = trainer.test()
-
-        is_best = valid_acc > best_acc
-        best_acc = max(valid_acc, best_acc)
-        
-        if is_best:
-            bad_cnt, best_epoch = 0, epoch
-        else:
-            bad_cnt += 1
-        
-        print('epoch: {}/{} | Train Loss: {} | Train acc: {} | Valid Loss: {} | Valid acc: {} | Test loss: {} | Test acc: {}'.format(
-            epoch, args.epochs, train_loss, train_acc, valid_loss, valid_acc, test_loss, test_acc))
-
-        trainer.save_checkpoint(epoch, train_acc, valid_acc, 
-                                valid_loss, train_loss, is_best, filename)
-
-
-        with open(os.path.join('log', args.task + '-' + args.name + '-finetune.log'), 'a') as outfile:
-            outfile.write('Epoch {}: train_loss={}, valid_loss={}, test_loss={}, train_acc={}, valid_acc={}, test_acc={}\n'.format(
-                epoch, train_loss, valid_loss, test_loss, train_acc, valid_acc, test_acc))
+    test_loss, test_acc = trainer.test()
+    print(test_loss, test_acc)
 
 if __name__ == '__main__':
     main()
