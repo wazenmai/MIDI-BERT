@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import miditoolkit
-import modules
+#import modules
 import pickle
 import utilsCP_task as utils
 import time
@@ -40,7 +40,7 @@ class PopMusicTransformer(object):
     ########################################
     # load model
     ########################################
-    def load_model(self):
+    '''def load_model(self):
         # placeholders
         self.x = tf.compat.v1.placeholder(tf.int32, shape=[self.batch_size, None])
         self.y = tf.compat.v1.placeholder(tf.int32, shape=[self.batch_size, None])
@@ -99,7 +99,7 @@ class PopMusicTransformer(object):
         config.gpu_options.allow_growth = True
         self.sess = tf.compat.v1.Session(config=config)
         self.saver.restore(self.sess, self.checkpoint_path)
-
+    '''
     ########################################
     # temperature sampling
     ########################################

@@ -1,4 +1,4 @@
-import chord_recognition
+#import chord_recognition
 import numpy as np
 import miditoolkit
 import copy
@@ -33,7 +33,9 @@ def read_items(file_path):
     midi_obj = miditoolkit.midi.parser.MidiFile(file_path)
     # note
     note_items = []
-    for ind in range(3):
+    num_of_instr = len(midi_obj.instruments)
+
+    for ind in range(num_of_instr):
         notes = midi_obj.instruments[ind].notes
         notes.sort(key=lambda x: (x.start, x.pitch))
 
@@ -97,7 +99,7 @@ def quantize_items(items, ticks=120):
     return items      
 
 # extract chord
-def extract_chords(items):
+'''def extract_chords(items):
     method = chord_recognition.MIDIChord()
     chords = method.extract(notes=items)
     output = []
@@ -109,7 +111,7 @@ def extract_chords(items):
             velocity=None,
             pitch=chord[2].split('/')[0]))
     return output
-
+'''
 # group items
 def group_items(items, max_time, ticks_per_bar=DEFAULT_RESOLUTION*4):
     items.sort(key=lambda x: x.start)
