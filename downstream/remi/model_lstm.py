@@ -13,7 +13,7 @@ from torch.nn import init
 
 class LSTM_Net(nn.Module):
     # n_vocab: total number in dictionary.pkl
-    def __init__(self, class_num, vocab_size=169, input_size=768, hidden_size=256, num_layers=3, dropout=0.4):
+    def __init__(self, class_num, vocab_size=169, input_size=768, hidden_size=256, num_layers=3, dropout=0.5):
         super(LSTM_Net, self).__init__()
 
         self.embeddings = nn.Embedding(vocab_size, input_size) 

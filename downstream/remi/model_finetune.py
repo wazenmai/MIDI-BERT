@@ -11,12 +11,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
 
-class LSTM_Net(nn.Module):
+class LSTM_Finetune(nn.Module):
     # n_vocab: total number in dictionary.pkl
-    def __init__(self, class_num, vocab_size=169, input_size=768, hidden_size=256, num_layers=3, dropout=0.4):
+    def __init__(self, class_num, input_size=768, hidden_size=256, num_layers=3, dropout=0.5):
         super(LSTM_Net, self).__init__()
 
-        self.embeddings = nn.Embedding(vocab_size, input_size) 
         self.lstm = LSTM(
             input_size = input_size, 
             hidden_size = hidden_size, 
@@ -28,7 +27,6 @@ class LSTM_Net(nn.Module):
                                          nn.Linear(hidden_size*2, class_num+1).cuda()
                                         ) 
     def forward(self, x):
-        x = self.embeddings(x)
         x = self.lstm(x)
         x = self.classifier(x[0])
         return x

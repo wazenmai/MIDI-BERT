@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Dec 14 2020
-
-@author: Yi-Hui (Sophia) Chou 
-"""
 import os
 from model_lstm import LSTM_Net 
 from model_finetune import LSTM_Finetune
@@ -33,6 +27,7 @@ def get_args():
     parser.add_argument('--name', type=str, help='Used for output directory name', required=True)
     
     ### parameter setting ###
+    parser.add_argument('--layer', type=str, default='12', help='specify embedding layer index')
     parser.add_argument('--train-batch', default=16, type=int)
     parser.add_argument('--valid-batch', default=8, type=int)
     parser.add_argument('--cuda', default=0, type=int, help='Specify cuda number')
@@ -50,6 +45,25 @@ def get_args():
     
     return args
 
+
+def load_ft_data(layer, task):
+    task_name = 'melody identification' if task == 'melody' else 'velocity classification'
+    print("\nloading data for fine-tuning {} ...".format(task_name))
+    print("Using embedding layer {}".format(layer))
+    X_train = np.load('/home/yh1488/NAS-189/home/BERT/cp_embed/POPtrain_' + layer + '.npy')
+    X_val = np.load('/home/yh1488/NAS-189/home/BERT/cp_embed/POPvalid_' + layer + '.npy')
+
+    return X_train, X_val
+
+def load_data(data, task):
+    task_name = 'melody identification' if task == 'melody' else 'velocity classification'
+    print("\nloading data for {} ...".format(task_name))
+    all = np.load(data)
+    X_train, X_val, _ = np.split(all, [int(.8 * len(all)), int(.9 * len(all))])
+    
+    return X_train, X_val
+
+
 def main():
     args = get_args()
     cuda_num = args.cuda 
@@ -57,27 +71,22 @@ def main():
     device = torch.device(cuda_str if torch.cuda.is_available() else 'cpu')
     print(device)
 
-    input_file = args.input
-    ans = args.answer
     exp_name = '-finetune' if args.finetune else '-LSTM'
     exp_dir = os.path.join('result', args.task + exp_name, args.name)
     target_jsonpath = exp_dir
+    if not os.path.exists(exp_dir):
+        Path(exp_dir).mkdir(parents = True, exist_ok = True)
 
     train_epochs = 1000
     lr = args.lr
     patience = 20
     
-    if not os.path.exists(exp_dir):
-        Path(exp_dir).mkdir(parents = True, exist_ok = True)
-
-    print("loading data...")
-    all = np.load(input_file)
-    all = torch.tensor(all, dtype=torch.long)
-    all_ans = np.load(ans)
-    all_ans = torch.tensor(all_ans, dtype=torch.long)
-   
-    # prepare data to 80:10:10
-    X_train, X_val, X_test = np.split(all, [int(.8 * len(all)), int(.9 * len(all))])
+    if args.finetune:
+        X_train, X_val = load_ft_data(args.layer, args.task)
+    else:
+        X_train, X_val = load_data(args.input, args.task)
+        
+    all_ans = np.load(args.answer)
     y_train, y_val, y_test = np.split(all_ans, [int(.8 * len(all_ans)), int(.9 * len(all_ans))])
     
     print('train shape', X_train.shape,'; valid shape', X_val.shape)
@@ -89,7 +98,10 @@ def main():
     print("len of valid_loader",len(valid_loader))
     
     print("initializing model...")    
-    model = LSTM_Net(class_num=args.class_num)
+    if args.finetune:
+        model = LSTM_Finetune(class_num=args.class_num)
+    else:
+        model = LSTM_Net(class_num=args.class_num)
     #for name, param in model.named_parameters():
         # nn.init.constant(param, 0.0)
     #    if 'weight' in name:
@@ -141,7 +153,6 @@ def main():
         if valid_loss.item() == es.best:
             best_epoch = epoch
             
-        target_name = 'MelodyIdentification' if args.task == 'melody' else 'VelocityClassification'
         utils.save_checkpoint({
                     'epoch': epoch + 1,
                     'state_dict': model.state_dict(),
@@ -151,7 +162,7 @@ def main():
                 },
                 is_best=valid_loss == es.best,
                 path=exp_dir,
-                target='LSTM'+target_name
+                target='LSTM-'+args.task+'-classification'
             )
 
             # save params
@@ -169,7 +180,7 @@ def main():
     #            'commit': commit
             }
 
-        with open(os.path.join(target_jsonpath,  'LSTM_' + args.task + '.json'), 'w') as outfile:
+        with open(os.path.join(target_jsonpath,  'LSTM-' + args.task + '.json'), 'w') as outfile:
             outfile.write(json.dumps(params, indent=4, sort_keys=True))
 
         train_times.append(time.time() - end)

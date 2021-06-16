@@ -65,9 +65,9 @@ def main():
     mode = 'finetune' if args.finetune else 'LSTM'
     print('Loading model from [{}/{}]...'.format(mode, best_mdl.split('/')[-2]))
     if args.finetune:
-        model = LSTM_Finetune(label_class=args.class_num)
+        model = LSTM_Finetune(class_num=args.class_num)
     else:
-        model = LSTM_Net(label_class=args.class_num)
+        model = LSTM_Net(class_num=args.class_num)
     model.load_state_dict(torch.load(best_mdl, map_location='cpu'))    # already is ['state_dict']
     model = model.to(device)
     model.eval()
