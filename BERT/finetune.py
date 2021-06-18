@@ -22,7 +22,7 @@ def get_args():
     ### mode ###
     parser.add_argument('--task', choices=['melody', 'velocity', 'composer', 'emotion'], required=True)
     ### path setup ###
-    parser.add_argument('--dict_file', type=str, default='../dict/compact4/CP.pkl')
+    parser.add_argument('--dict_file', type=str, default='dict/compact4/CP.pkl')
     parser.add_argument('--name', type=str, default='')
     parser.add_argument('--ans_path', type=str)
 
@@ -36,6 +36,7 @@ def get_args():
     parser.add_argument('--mask_percent', type=float, default=0.15, help="Up to `valid_seq_len * target_max_percent` tokens will be masked out for prediction")
     parser.add_argument('--max_seq_len', type=int, default=512, help='all sequences are padded to `max_seq_len`')
     parser.add_argument('--hs', type=int, default=768)
+    parser.add_argument("--index_layer", type=int, default=12, help="number of layers")
     parser.add_argument("-l", "--layers", type=int, default=8, help="number of layers")
     parser.add_argument("-a", "--attn_heads", type=int, default=8, help="number of attention heads")
     parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')
@@ -55,48 +56,52 @@ def get_args():
         args.ans_path = '/home/yh1488/NAS-189/home/CP_data/POP909cp_velans.npy'
         args.class_num = 7
     elif args.task == 'composer':
-        pass
+        args.class_num = 8
     elif args.task == 'emotion':
-        pass
+        args.class_num = 4
 
     return args
 
 
-def load_data(dataset):
+def load_data(dataset, answer):
     if dataset == 'pop909':
         POP909_path = '/home/yh1488/NAS-189/home/CP_data/POP909cp.npy'
         POP_data = np.load(POP909_path, allow_pickle=True)
         X_train, X_val, X_test = np.split(POP_data, [int(.8 * len(POP_data)), int(.9 * len(POP_data))])
+        ans_data = np.load(answer, allow_pickle=True)
+        y_train, y_val, y_test = np.split(ans_data, [int(.8 * len(ans_data)), int(.9 * len(ans_data))])
 
     elif dataset == 'composer':
-        composer_path = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_train.npy'
-        composer_train = np.load(composer_path, allow_pickle=True)
-        composer_path = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_valid.npy'
-        composer_valid = np.load(composer_path, allow_pickle=True)
-        composer_path = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_test.npy'
-        composer_test = np.load(composer_path, allow_pickle=True)
-        print('   Composer: ({}, {}, {})'.format(composer_train.shape[0]+composer_valid.shape[0]+composer_test.shape[0], composer_train.shape[1], composer_train.shape[2]))
+        composer_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_'
+        X_train = np.load(composer_root+'train.npy', allow_pickle=True)
+        X_val = np.load(composer_root+'valid.npy', allow_pickle=True)
+        X_test = np.load(composer_root+'test.npy', allow_pickle=True)
+        y_train = np.load(composer_root+'train_ans.npy', allow_pickle=True)
+        y_val = np.load(composer_root+'valid_ans.npy', allow_pickle=True)
+        y_test = np.load(composer_root+'test_ans.npy', allow_pickle=True)
 
     elif dataset == 'ailabs17k':
         remi1700_path = '/home/yh1488/NAS-189/home/CP_data/ai17k.npy'
         remi1700 = np.load(remi1700_path, allow_pickle=True)
         print('   ailabs17k:', remi1700.shape)
 
-    elif dataset == 'ASAP':
-        ASAP_path = '/home/yh1488/NAS-189/homes/wazenmai/MIDI-BERT/for_wazenmai/prepare_CP/ASAP_CP.npy'
-        ASAP = np.load(ASAP_path, allow_pickle=True)
-        print('   ASAP:', ASAP.shape)
-
     elif dataset == 'emopia':
-        emopia_path = '/home/yh1488/NAS-189/homes/wazenmai/MIDI-BERT/for_wazenmai/prepare_CP/Emopia_CP.npy'
-        emopia = np.load(emopia_path, allow_pickle=True)
-        print('   emopia:', emopia.shape)
+        emopia_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/emopia_dataset/CP/emopia_'
+        X_train = np.load(emopia_root+'train.npy', allow_pickle=True)
+        X_val = np.load(emopia_root+'valid.npy', allow_pickle=True)
+        X_test = np.load(emopia_root+'test.npy', allow_pickle=True)
+        y_train = np.load(emopia_root+'train_ans.npy', allow_pickle=True)
+        y_val = np.load(emopia_root+'valid_ans.npy', allow_pickle=True)
+        y_test = np.load(emopia_root+'test_ans.npy', allow_pickle=True)
+    else:
+        print('dataset {} not supported'.format(dataset))
+        exit(1)
     
-    
-    print('train', X_train.shape)
-    print('valid', X_val.shape)
-    print('test', X_test.shape)
-    return X_train, X_val, X_test
+    print('X_train: {}, X_valid: {}, X_test: {}'.format(
+        X_train.shape, X_val.shape, X_test.shape))
+    print('y_train: {}, y_valid: {}, y_test: {}'.format(
+        y_train.shape, y_val.shape, y_test.shape))
+    return X_train, X_val, X_test, y_train, y_val, y_test
 
 
 def main():
@@ -109,9 +114,14 @@ def main():
     print("\nLoading Dataset") 
     if args.task == 'melody' or args.task == 'velocity':
         dataset = 'pop909' 
-    X_train, X_val, X_test = load_data(dataset)
-    ans_data = np.load(args.ans_path, allow_pickle=True)
-    y_train, y_val, y_test = np.split(ans_data, [int(.8 * len(ans_data)), int(.9 * len(ans_data))])
+        seq_class = False
+    elif args.task == 'composer':
+        dataset = 'composer'
+        seq_class = True
+    elif args.task == 'emotion':
+        dataset = 'emopia'
+        seq_class = True
+    X_train, X_val, X_test, y_train, y_val, y_test = load_data(dataset, args.ans_path)
     
     trainset = FinetuneDataset(X=X_train, y=y_train)
     validset = FinetuneDataset(X=X_val, y=y_val) 
@@ -136,9 +146,10 @@ def main():
     midibert.load_state_dict(checkpoint['state_dict'])
 
     
-    print("\nCreating Finetune Trainer")
-    trainer = FinetuneTrainer(midibert, train_loader, valid_loader, test_loader, args.lr, args.class_num,
-                                args.hs, args.with_cuda, args.cuda_devices)
+    index_layer = int(args.index_layer)-13
+    print("\nCreating Finetune Trainer using index layer", index_layer)
+    trainer = FinetuneTrainer(midibert, train_loader, valid_loader, test_loader, index_layer, args.lr, args.class_num,
+                                args.hs, y_test.shape, args.with_cuda, args.cuda_devices, None, seq_class)
     
     
     print("\nTraining Start")
@@ -151,12 +162,12 @@ def main():
     bad_cnt = 0
 
     for epoch in range(args.epochs):
-        if bad_cnt >= 3:
+        if bad_cnt >= 5:
             print('valid acc not improving for 3 epochs')
             break
         train_loss, train_acc = trainer.train()
         valid_loss, valid_acc = trainer.valid()
-        test_loss, test_acc = trainer.test()
+        test_loss, test_acc, _ = trainer.test()
 
         is_best = valid_acc > best_acc
         best_acc = max(valid_acc, best_acc)

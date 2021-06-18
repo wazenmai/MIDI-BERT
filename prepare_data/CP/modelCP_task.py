@@ -233,7 +233,7 @@ class PopMusicTransformer(object):
     ########################################
     # prepare training data
     ########################################
-    def prepare_data(self, midi_paths, task):
+    def prepare_data(self, midi_paths, task, max_len):
         # extract events
         all_events = []
         for path in midi_paths:
@@ -268,15 +268,15 @@ class PopMusicTransformer(object):
     
             # slice to chunks so that max_len = 512
             slice_words, slice_ys = [], []
-            max_len = 512
+            #max_len = 512
             for i in range(0, len(words), max_len):
                 slice_words.append(words[i:i+max_len])
                 slice_ys.append(ys[i:i+max_len])
             
             # padding
-            if len(slice_words[-1])<512:
+            if len(slice_words[-1]) < max_len:
                 slice_words[-1] = self.padding(slice_words[-1], max_len, ans=False)
-            if len(slice_ys[-1])<512:
+            if len(slice_ys[-1]) < max_len:
                 slice_ys[-1] = self.padding(slice_ys[-1], max_len, ans=True)
             
             all_words = all_words + slice_words

@@ -32,7 +32,9 @@ def read_items(file_path):
     midi_obj = miditoolkit.midi.parser.MidiFile(file_path)
     # note
     note_items = []
-    for i in range(3):
+    num_of_instr = len(midi_obj.instruments) 
+    
+    for i in range(num_of_instr):
         notes = midi_obj.instruments[i].notes
         notes.sort(key=lambda x: (x.start, x.pitch))
 
@@ -46,7 +48,7 @@ def read_items(file_path):
                 Type=i))
                 
     note_items.sort(key=lambda x: x.start)
-
+    
     # tempo
     tempo_items = []
     for tempo in midi_obj.tempo_changes:
@@ -192,7 +194,13 @@ def item2event(groups, task):
                     text='{}'.format(item.start),
                     Type=-1))
                 
-                pitchType = item.Type if task == "melody" else velocity_index
+                if task == 'melody':
+                    pitchType = item.Type
+                elif task == 'velocity':
+                    pitchType = velocity_index
+                else:
+                    pitchType = -1
+                
                 # pitch
                 note_tuple.append(Event(
                     name='Pitch',
