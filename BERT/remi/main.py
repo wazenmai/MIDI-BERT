@@ -20,7 +20,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='')
 
     ### path setup ###
-    parser.add_argument('--dict_file', type=str, default='../dict/compact4/remi.pkl')
+    parser.add_argument('--dict_file', type=str, default='../dict/remi.pkl')
     parser.add_argument('--name', type=str, default='')
 
     ### pre-train dataset ###
@@ -40,7 +40,7 @@ def get_args():
     
     ### cuda ###
     parser.add_argument("--with_cuda", type=bool, default=True, help="training with CUDA: true, or false")
-    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1,2,3], help="CUDA device ids")
+    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,2,3], help="CUDA device ids")
     #parser.add_argument("-w", "--num_workers", type=int, default=5, help="dataloader worker size")
 
     args = parser.parse_args()
@@ -52,13 +52,13 @@ def load_data(dataset):
     to_concat = []
     
     if 'pop909' in dataset:
-        POP909_path = '/home/yh1488/NAS-189/home/remi_data/POP909remi.npy'
+        POP909_path = '/home/yh1488/NAS189/home/remi_data/POP909remi.npy'
         POP_data = np.load(POP909_path, allow_pickle=True)
         print('   POP909:', POP_data.shape)
         to_concat.append(POP_data)
 
     if 'composer' in dataset:
-        composer_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/new_remi/'
+        composer_root = '/home/yh1488/NAS189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/new_remi/'
         path = composer_root + 'CC_train_remi.npy'
         composer_train = np.load(path, allow_pickle=True)
         path = composer_root + 'CC_valid_remi.npy'
@@ -70,19 +70,19 @@ def load_data(dataset):
         to_concat.append(composer)
 
     if 'ailabs17k' in dataset:
-        remi1700_path = '/home/yh1488/NAS-189/home/remi_data/ai17k.npy'
+        remi1700_path = '/home/yh1488/NAS189/home/remi_data/ai17k.npy'
         remi1700 = np.load(remi1700_path, allow_pickle=True)
         print('   ailabs17k:', remi1700.shape)
         to_concat.append(remi1700)
 
     if 'ASAP' in dataset:
-        ASAP_path = '/home/yh1488/NAS-189/homes/wazenmai/MIDI-BERT/for_wazenmai/prepare_remi/ASAP_remi.npy'
+        ASAP_path = '/home/yh1488/NAS189/homes/wazenmai/MIDI-BERT/for_wazenmai/prepare_remi/ASAP_remi.npy'
         ASAP = np.load(ASAP_path, allow_pickle=True)
         print('   ASAP:', ASAP.shape)
         to_concat.append(ASAP)
 
     if 'emopia' in dataset:
-        emopia_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/emopia_dataset/remi/emopia_'
+        emopia_root = '/home/yh1488/NAS189/homes/wazenmai/datasets/MIDI-BERT/emopia_dataset/remi/emopia_'
         path = emopia_root + 'train.npy'
         emopia_train = np.load(path, allow_pickle=True)
         path = emopia_root + 'valid.npy'
@@ -138,7 +138,7 @@ def main():
     
     
     print("\nTraining Start")
-    save_dir = '/home/yh1488/NAS-189/homes/yh1488/BERT/remi_result/pretrain/'
+    save_dir = '/home/yh1488/NAS189/homes/yh1488/BERT/remi_result/pretrain/'
     os.makedirs(save_dir, exist_ok=True)
     filename = save_dir + 'model-' + args.name + '.ckpt'
     print("   save model at {}".format(filename))
