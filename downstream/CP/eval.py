@@ -16,7 +16,7 @@ def get_args():
     ### file ###
     parser.add_argument('-i', '--input', type=str)
     parser.add_argument('-a', '--answer', type=str)
-    parser.add_argument('-d', '--dict', default = '../remi/my-checkpoint/CP.pkl', type=str)
+    parser.add_argument('-d', '--dict', default = 'CP.pkl', type=str)
     parser.add_argument('-k', '--ckpt', type=str, required=True)
 
     ### parameter ###
@@ -35,7 +35,8 @@ def get_args():
         args.class_num = 6
     
     if args.finetune:
-        args.input = '/home/yh1488/NAS-189/home/BERT/cp_embed/POPtest_'+args.layer+'.npy'
+        #X_train = np.load('/home/yh1488/NAS-189/home/BERT/cp_embed/final/pop909-layer12-train.npy')
+        args.input = '/home/yh1488/NAS-189/home/BERT/cp_embed/final/pop909-layer12-test.npy' #+args.layer+'.npy'
     else:
         args.input = '/home/yh1488/NAS-189/home/CP_data/POP909cp.npy'
 
