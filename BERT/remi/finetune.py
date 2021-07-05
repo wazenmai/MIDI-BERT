@@ -162,7 +162,7 @@ def main():
     bad_cnt = 0
 
     for epoch in range(args.epochs):
-        if bad_cnt >= 5:
+        if bad_cnt >= 3:
             print('valid acc not improving for 3 epochs')
             break
         train_loss, train_acc = trainer.train()
@@ -178,7 +178,7 @@ def main():
             bad_cnt += 1
         
         print('epoch: {}/{} | Train Loss: {} | Train acc: {} | Valid Loss: {} | Valid acc: {} | Test loss: {} | Test acc: {}'.format(
-            epoch, args.epochs, train_loss, train_acc, valid_loss, valid_acc, test_loss, test_acc))
+            epoch+1, args.epochs, train_loss, train_acc, valid_loss, valid_acc, test_loss, test_acc))
 
         trainer.save_checkpoint(epoch, train_acc, valid_acc, 
                                 valid_loss, train_loss, is_best, filename)
@@ -186,7 +186,7 @@ def main():
 
         with open(os.path.join('log', args.task + '-' + args.name + '-finetune.log'), 'a') as outfile:
             outfile.write('Epoch {}: train_loss={}, valid_loss={}, test_loss={}, train_acc={}, valid_acc={}, test_acc={}\n'.format(
-                epoch, train_loss, valid_loss, test_loss, train_acc, valid_acc, test_acc))
+                epoch+1, train_loss, valid_loss, test_loss, train_acc, valid_acc, test_acc))
 
 if __name__ == '__main__':
     main()

@@ -48,7 +48,7 @@ class MidiBert(nn.Module):
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), bertConfig.d_model)
 
 
-    def forward(self, input_ids, attn_mask=None):
+    def forward(self, input_ids, attn_mask=None, output_hidden_states=True):
         # convert input_ids into embeddings and merge them through linear layer
         embs =[]
         for i, key in enumerate(self.e2w):
@@ -57,8 +57,8 @@ class MidiBert(nn.Module):
         emb_linear = self.in_linear(embs)
 
         # feed to bert 
-        y = self.bert(inputs_embeds=emb_linear, attention_mask=attn_mask)
-        y = y.last_hidden_state         # (batch_size, seq_len, 768)
+        y = self.bert(inputs_embeds=emb_linear, attention_mask=attn_mask, output_hidden_states=output_hidden_states)
+        #y = y.last_hidden_state         # (batch_size, seq_len, 768)
 
         return y
     

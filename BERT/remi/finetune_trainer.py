@@ -15,7 +15,8 @@ from finetune_model import TokenClassification, SequenceClassification
 class FinetuneTrainer:
     def __init__(self, midibert, train_dataloader, valid_dataloader, test_dataloader, layer, 
                 lr, class_num, hs, testset_shape, with_cuda: bool=True, cuda_devices=None, model=None, SeqClass=False):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
+#        self.device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cpu')
         self.midibert = midibert
         self.SeqClass = SeqClass
         self.layer = layer
@@ -30,9 +31,9 @@ class FinetuneTrainer:
             else:
                 self.model = TokenClassification(self.midibert, class_num, hs).to(self.device)
     
-        if torch.cuda.device_count() > 1:
-            print("Use %d GPUS" % torch.cuda.device_count())
-            self.model = nn.DataParallel(self.model, device_ids=cuda_devices)
+#        if torch.cuda.device_count() > 1:
+#            print("Use %d GPUS" % torch.cuda.device_count())
+#            self.model = nn.DataParallel(self.model, device_ids=cuda_devices)
 
         self.train_data = train_dataloader
         self.valid_data = valid_dataloader
@@ -71,7 +72,7 @@ class FinetuneTrainer:
     def iteration(self, training_data, mode, seq):
         pbar = tqdm.tqdm(training_data, disable=False)
 
-        total_acc, total_loss = 0, 0
+        total_acc, total_cnt, total_loss = 0, 0, 0
 
         if mode == 2: # testing
             all_output = torch.empty(self.testset_shape)
@@ -79,7 +80,6 @@ class FinetuneTrainer:
 
         for x, y in pbar:  # (batch, 512, 768)
             batch = x.shape[0]
-            #x, y = x.to(self.device).float(), y.to(self.device)    # no bert: (batch, 512, 4)
             x, y = x.to(self.device), y.to(self.device)     # seq: (batch, 512, 4), (batch) / token: , (batch, 512)
 
             # avoid attend to pad word
@@ -100,11 +100,12 @@ class FinetuneTrainer:
             # accuracy
             if not seq:
                 acc = torch.sum((y == output).float() * attn)
-                acc /= torch.sum(attn)
+                total_acc += acc
+                total_cnt += torch.sum(attn).item()
             else:
                 acc = torch.sum((y == output).float())
-                acc /= y.shape[0]
-            total_acc += acc
+                total_acc += acc
+                total_cnt += y.shape[0]
 
             # calculate losses
             if not seq:
@@ -119,8 +120,8 @@ class FinetuneTrainer:
                 self.optim.step()
 
         if mode == 2:
-            return round(total_loss/len(training_data),4), round(total_acc.item()/len(training_data),4), all_output
-        return round(total_loss/len(training_data),4), round(total_acc.item()/len(training_data),4)
+            return round(total_loss/len(training_data),4), round(total_acc.item()/total_cnt,4), all_output
+        return round(total_loss/len(training_data),4), round(total_acc.item()/total_cnt,4)
 
 
     def save_checkpoint(self, epoch, train_acc, valid_acc, 

@@ -26,9 +26,6 @@ def get_args():
     parser.add_argument('--name', type=str, default='')
     parser.add_argument('--ans_path', type=str)
 
-    ### pre-train dataset ###
-    parser.add_argument("--dataset", type=str, choices=['pop909','composer', 'ailabs17k', 'ASAP', 'emopia'])
-    
     ### parameter setting ###
     parser.add_argument('--num_workers', type=int, default=5)
     parser.add_argument('--class_num', type=int)
@@ -45,7 +42,7 @@ def get_args():
     
     ### cuda ###
     parser.add_argument("--with_cuda", type=bool, default=True, help="training with CUDA: true, or false")
-    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1,2,3], help="CUDA device ids")
+    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[2,3], help="CUDA device ids")
 
     args = parser.parse_args()
 
@@ -63,13 +60,20 @@ def get_args():
     return args
 
 
-def load_data(dataset, answer):
+def load_data(dataset, task):
     if dataset == 'pop909':
-        POP909_path = '/home/yh1488/NAS-189/home/CP_data/POP909cp.npy'
-        POP_data = np.load(POP909_path, allow_pickle=True)
-        X_train, X_val, X_test = np.split(POP_data, [int(.8 * len(POP_data)), int(.9 * len(POP_data))])
-        ans_data = np.load(answer, allow_pickle=True)
-        y_train, y_val, y_test = np.split(ans_data, [int(.8 * len(ans_data)), int(.9 * len(ans_data))])
+#        POP909_path = '/home/yh1488/NAS-189/home/CP_data/POP909cp.npy'
+#        POP_data = np.load(POP909_path, allow_pickle=True)
+#        X_train, X_val, X_test = np.split(POP_data, [int(.8 * len(POP_data)), int(.9 * len(POP_data))])
+#        ans_data = np.load(answer, allow_pickle=True)
+#        y_train, y_val, y_test = np.split(ans_data, [int(.8 * len(ans_data)), int(.9 * len(ans_data))])
+        root = '/home/yh1488/NAS-189/home/CP_data/pop909_'
+        X_train = np.load(root+'train.npy', allow_pickle=True)
+        X_val = np.load(root+'valid.npy', allow_pickle=True)
+        X_test = np.load(root+'test.npy', allow_pickle=True)
+        y_train = np.load(root+'train_'+task[:3]+'ans.npy', allow_pickle=True)
+        y_val = np.load(root+'valid_'+task[:3]+'ans.npy', allow_pickle=True)
+        y_test = np.load(root+'test_'+task[:3]+'ans.npy', allow_pickle=True)
 
     elif dataset == 'composer':
         composer_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_'
@@ -121,7 +125,7 @@ def main():
     elif args.task == 'emotion':
         dataset = 'emopia'
         seq_class = True
-    X_train, X_val, X_test, y_train, y_val, y_test = load_data(dataset, args.ans_path)
+    X_train, X_val, X_test, y_train, y_val, y_test = load_data(dataset, args.task)
     
     trainset = FinetuneDataset(X=X_train, y=y_train)
     validset = FinetuneDataset(X=X_val, y=y_val) 
@@ -141,10 +145,11 @@ def main():
                                 hidden_size=args.hs)
 
     best_mdl = '/home/yh1488/NAS-189/homes/yh1488/BERT/cp_result/pretrain/model-batch12_best.ckpt'
+    #best_mdl = '/home/yh1488/NAS-189/home/BERT/cp_result/pretrain/model-data-onlytrain_best.ckpt'
+    print("   Loading pre-trained model from", best_mdl.split('/')[-1])
     checkpoint = torch.load(best_mdl, map_location='cpu')
     midibert = MidiBert(bertConfig=configuration, e2w=e2w, w2e=w2e)
     midibert.load_state_dict(checkpoint['state_dict'])
-
     
     index_layer = int(args.index_layer)-13
     print("\nCreating Finetune Trainer using index layer", index_layer)
@@ -155,16 +160,13 @@ def main():
     print("\nTraining Start")
     save_dir = '/home/yh1488/NAS-189/homes/yh1488/BERT/cp_result/finetune/'
     os.makedirs(save_dir, exist_ok=True)
-    filename = save_dir + 'finetune-' + args.name + '.ckpt'
+    filename = save_dir + 'finetune-' + args.task + '-' + args.name + '.ckpt'
     print("   save model at {}".format(filename))
 
     best_acc, best_epoch = 0, 0
     bad_cnt = 0
 
     for epoch in range(args.epochs):
-        if bad_cnt >= 5:
-            print('valid acc not improving for 3 epochs')
-            break
         train_loss, train_acc = trainer.train()
         valid_loss, valid_acc = trainer.valid()
         test_loss, test_acc, _ = trainer.test()
@@ -178,15 +180,19 @@ def main():
             bad_cnt += 1
         
         print('epoch: {}/{} | Train Loss: {} | Train acc: {} | Valid Loss: {} | Valid acc: {} | Test loss: {} | Test acc: {}'.format(
-            epoch, args.epochs, train_loss, train_acc, valid_loss, valid_acc, test_loss, test_acc))
+            epoch+1, args.epochs, train_loss, train_acc, valid_loss, valid_acc, test_loss, test_acc))
 
-        trainer.save_checkpoint(epoch, train_acc, valid_acc, 
-                                valid_loss, train_loss, is_best, filename)
+#        trainer.save_checkpoint(epoch, train_acc, valid_acc, 
+#                                valid_loss, train_loss, is_best, filename)
 
 
         with open(os.path.join('log', args.task + '-' + args.name + '-finetune.log'), 'a') as outfile:
             outfile.write('Epoch {}: train_loss={}, valid_loss={}, test_loss={}, train_acc={}, valid_acc={}, test_acc={}\n'.format(
-                epoch, train_loss, valid_loss, test_loss, train_acc, valid_acc, test_acc))
+                epoch+1, train_loss, valid_loss, test_loss, train_acc, valid_acc, test_acc))
+        
+        if bad_cnt >= 3:
+            print('valid acc not improving for 3 epochs')
+            break
 
 if __name__ == '__main__':
     main()
