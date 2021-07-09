@@ -81,9 +81,9 @@ def quantize_melody(notes, tick_resol=240):
     return melody_notes
 
 
-def extract_melody(melody_notes):
-    # quanrize
-    #melody_notes = quantize_melody(notes)
+def extract_melody(notes):
+    # quantize
+    melody_notes = quantize_melody(notes)
 
     # sort by start, pitch from high to low
     melody_notes.sort(key=lambda x: (x.start, -x.pitch))
