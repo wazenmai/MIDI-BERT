@@ -12,15 +12,14 @@ def get_args():
     parser.add_argument('-t', '--task', choices=['melody', 'velocity'])
 
     ### path ###
-    parser.add_argument('--dict', default='../../BERT/dict/compact4/CP_cls.pkl')
-    parser.add_argument('--dataset', choices=["pop909", "ailabs17k"], required=True)
+    parser.add_argument('--dict', default='../../dict/CP.pkl')
+    parser.add_argument('--dataset', choices=["pop909", "pop17k"], required=True)
 
     ### parameter ###
     parser.add_argument('--max_len', default=512)
     
     ### output ###    
-    parser.add_argument('--dir', default="/home/yh1488/NAS-189/home/CP_data")
-    parser.add_argument('-n', '--name', default="POP909cp")
+    parser.add_argument('--dir', default="CP_data")
 
     args = parser.parse_args()
 
@@ -28,6 +27,20 @@ def get_args():
         print('[error] melody task is only supported for pop909 dataset')
         exit(1)
     return args
+
+
+def extract(files, args, model, mode):
+    print('number of {} files: {}'.format(mode, len(files)))  # 693,86,86
+    segments, ans = model.prepare_data(files, args.task, int(args.max_len))
+    print('segment shape', segments.shape)
+    output_file = args.dir + '/' + args.dataset + '_' + mode + '.npy'
+
+    np.save(output_file, segments)
+    if args.task != None:
+        print('ans shape', ans.shape)
+        ans_file = args.dir + '/' + args.dataset + '_' + mode + '_' + args.task[:3] + 'ans.npy'   
+        np.save(ans_file, ans)
+    
 
 
 def main(): 
@@ -39,25 +52,27 @@ def main():
         checkpoint=args.dict,
         is_training=True)
 
+    root = '/home/yh1488/NAS-189/home/'
     if args.dataset == 'pop909':
-        files = glob.glob('/home/yh1488/NAS-189/home/Dataset/pop909_aligned/*.mid') # not in order 
-    elif args.dataset == 'ailabs17k':
-        files = glob.glob('/home/yh1488/NAS-189/home/Dataset/ailabs17k/*/*.mid')
+        files = glob.glob(root+'Dataset/pop909_aligned/*.mid')  
+    elif args.dataset == 'pop17k':
+        files = glob.glob(root+'Dataset/pop17k/*/*.mid')
 
     print('number of files', len(files))
 
-    segments, ans = model.prepare_data(files, args.task, int(args.max_len))
-
-    print('segment shape', segments.shape)
-    output_file = args.dir + '/' + args.name + '.npy'
-#    if not os.path.exists(output_file):
-    np.save(output_file, segments)
-    
-    if args.task != None:
-        print('ans shape', ans.shape)
-        ans_file = args.dir+'/' + args.name + '_' + args.task[:3] + 'ans.npy'   
-        np.save(ans_file, ans)
-    
+    if args.task:
+        # split to 8:1:1 for train, valid, test set
+        test_len = (-1) * int(len(files)*0.1)
+        train_files = files[: 2*test_len]
+        valid_files = files[2*test_len : test_len]
+        test_files = files[test_len :]
+        
+        extract(train_files, args, model, 'train')
+        extract(valid_files, args, model, 'valid')
+        extract(test_files, args, model, 'test')
+    else:
+        # in one single file
+        extract(files, args, model, 'all')
 
 if __name__ == '__main__':
     main()

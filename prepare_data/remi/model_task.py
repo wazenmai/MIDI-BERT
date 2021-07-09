@@ -1,4 +1,4 @@
-import tensorflow as tf
+#import tensorflow as tf
 import numpy as np
 import miditoolkit
 #import modules
@@ -245,12 +245,6 @@ class PopMusicTransformer(object):
                 if e in self.event2word:
                     words.append(self.event2word[e])
                     ys.append(event.Type + 1) 
-                    '''if event.Type == 0 or event.Type==1: # melody & bridge => melody
-                        ys.append(1)
-                    elif event.Type==2:             # accompaniment => accompaniment
-                        ys.append(2)
-                    else:
-                        ys.append(0)
                 else:
                     # OOV
                     if event.name == 'Note Velocity':
@@ -260,7 +254,7 @@ class PopMusicTransformer(object):
                     else:
                         # something is wrong
                         # you should handle it for your own purpose
-                        print('something is wrong! {}'.format(e))'''
+                        print('something is wrong! {}'.format(e))
     
             # slice to chunks so that max_len = 512
             slice_words, slice_ys = [], []
@@ -283,26 +277,6 @@ class PopMusicTransformer(object):
         print(all_words.shape, all_ys.shape)
         return all_words, all_ys
         
-        # to training data
-        '''self.group_size = 5
-        segments = []
-        for words in all_words:
-            pairs = []
-            for i in range(0, len(words)-self.x_len, self.x_len):
-                x = words[i:i+self.x_len]
-                pairs.append(x)
-            pairs = np.array(pairs)
-            segments.append(pairs)
-            # abandon the last
-            for i in np.arange(0, len(pairs)-self.group_size, self.group_size*2):
-                data = pairs[i:i+self.group_size]
-                if len(data) == self.group_size:
-                    segments.append(data)
-            
-        segments = np.array(segments)
-        
-        return segments
-        '''
     ########################################
     # finetune
     ########################################
