@@ -1,20 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Dec 14 2020
-
-@author: Yi-Hui (Sophia) Chou 
-"""
-import sys
-sys.path.append('../../CP')
-
-from torch.utils.data import DataLoader
 import tqdm
 import torch
 import numpy as np
 import torch.nn as nn
-import utils_bestloss as utils
 
-def training(model, device, train_loader, optimizer, finetune):
+def training(model, device, train_loader, optimizer):
     model.train()
     
     train_loss, total_acc = 0, 0
@@ -22,10 +11,7 @@ def training(model, device, train_loader, optimizer, finetune):
 
     for x, y in pbar:
         pbar.set_description("Training batch")
-        if finetune:
-            x, y = x.to(device), y.to(device).long()  # x: (batch, seq, CP_token_num=4), y: (batch, seq)
-        else:
-            x, y = x.to(device).long(), y.to(device).long()
+        x, y = x.to(device).long(), y.to(device).long()
         optimizer.zero_grad()
         
         y_hat = model(x)    # (batch, seq, class_probability) = (16,512,4)
@@ -52,15 +38,12 @@ def training(model, device, train_loader, optimizer, finetune):
     return train_loss/len(train_loader), total_acc/len(train_loader)
 
 
-def valid(model, device, valid_loader, finetune):
+def valid(model, device, valid_loader):
     model.eval()
     valid_loss, valid_acc = 0, 0
     with torch.no_grad():
         for x, y in valid_loader:
-            if finetune:
-                x, y = x.to(device), y.to(device).long()  # x: (batch, seq, CP_token_num=4), y: (batch, seq)
-            else:
-                x, y = x.to(device).long(), y.to(device).long()
+            x, y = x.to(device).long(), y.to(device).long()
             
             y_hat = model(x) 
             output = np.argmax(y_hat.cpu().detach().numpy(), axis=-1)
@@ -81,4 +64,3 @@ def valid(model, device, valid_loader, finetune):
             valid_loss += loss
 
     return valid_loss/len(valid_loader), valid_acc/len(valid_loader)
-

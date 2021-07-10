@@ -41,17 +41,23 @@ def get_args():
     parser.add_argument('--train-batch', default=16, type=int)
     parser.add_argument('--dev-batch', default=8, type=int)
     parser.add_argument('--cuda', default=0, type=int, help='Specify cuda number')
-    parser.add_argument('--lr', default=0, type=float, help="learning rate")
-
+    parser.add_argument('--epoch', default=1000, type=int, help='number of training epochs')
+    parser.add_argument('--lr', default=1e-2, type=float, help="learning rate")
+    
     args = parser.parse_args()
 
     # learning rate used in paper
-    if args.lr == 0:
-        if args.task == "composer":
-            args.lr = 1e-2
-        elif args.task == "emotion":
-            args.lr = 5e-2
+    # if args.lr == 0:
+    #     if args.task == "composer":
+    #         args.lr = 1e-2
+    #     elif args.task == "emotion":
+    #         args.lr = 5e-2
     
+    if args.task == "composer":
+        args.num_of_class = 8
+    elif args.task == "emotion":
+        args.num_of_class = 4
+
     return args
 
 def main():
@@ -64,8 +70,9 @@ def main():
     exp_name = args.output
     exp_dir = os.path.join('./experiments', exp_name)
     target_jsonpath = exp_dir
+    num_of_class = args.num_of_class
 
-    train_epochs = 1000
+    train_epochs = args.epoch
     lr = args.lr
     patience = 20
     
@@ -94,11 +101,6 @@ def main():
     valid_loader = DataLoader(validset, batch_size = args.dev_batch, shuffle = True)
     print("   len of valid_loader", len(valid_loader))
     print("\n initializing model...")    
-
-    if args.task == "composer":
-        num_of_class = 8
-    elif args.task == "emotion":
-        num_of_class = 4
 
     model = SAN(num_of_dim=num_of_class, e2w=e2w, vocab_size=len(e2w), embedding_size=768, r=4)
     model.cuda(cuda_num)

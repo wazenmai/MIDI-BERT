@@ -22,15 +22,6 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from sklearn.metrics import confusion_matrix
 
-def load_data():
-    input_file = "/home/wazenmai/NAS_189/home/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_test.npy"
-    ans_file = "/home/wazenmai/NAS_189/home/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_test_ans.npy"
-    
-    all_data = np.load(input_file)
-    all_ans = np.load(ans_file)
-    
-    return all_data, all_ans
-
 def get_args():
     parser = argparse.ArgumentParser(description='Argument Parser for sequence-level tasks')
     
@@ -44,6 +35,12 @@ def get_args():
 
     ### parameter setting ###
     parser.add_argument('--cuda', type=int, default=0, help='Specify cuda number')
+    parser.add_argument('--class', type=int, help="the class number")
+
+    if args.task == "composer":
+        args.num_of_class = 8
+    elif args.task == "emotion":
+        args.num_of_class = 4
 
     args = parser.parse_args()
     return args
@@ -112,10 +109,7 @@ def main():
 
     # Load model
     print('Loading model...')
-    if args.task == "composer":
-        num_of_class = 8
-    elif args.task == "emotion":
-        num_of_class = 4
+    num_of_class = args.num_of_class
     model = SAN(num_of_dim=num_of_class, e2w=e2w, vocab_size=len(e2w), embedding_size=768, r=4)
     best_ckpt = './experiments/' + args.ckpt + '/SAN_' + args.task + '.pth'
     model.load_state_dict(torch.load(best_ckpt, map_location='cpu')) # already is ['state_dict']

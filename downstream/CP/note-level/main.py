@@ -1,23 +1,15 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Dec 14 2020
-
-@author: Yi-Hui (Sophia) Chou 
-"""
 import sys
 sys.path.append('../../CP')
 
 import os
-from model_lstm import LSTM_Net 
-from model_finetune import LSTM_Finetune
+from model import LSTM_Net 
 from pop_dataset import PopDataset
 from torch.utils.data import DataLoader
 import tqdm
 import torch
-import torch.nn as nn
 from pathlib import Path
 import json
-import downstream.CP.utils_bestloss as utils
+import utils_bestloss as utils
 import time
 from train import training, valid
 import numpy as np
@@ -28,53 +20,43 @@ import pickle
 def get_args():
     parser = argparse.ArgumentParser(description='Argument Parser for downstream classification')
     ### mode ###
-    parser.add_argument('-t', '--task', choices=['melody', 'velocity'], required=True)
-    parser.add_argument('--finetune', action="store_true")  # default: false
+    parser.add_argument('--task', choices=['melody', 'velocity'], required=True)
 
     ### path setup ### 
-    parser.add_argument('--input', type=str, default='/home/yh1488/NAS-189/home/CP_data/POP909cp.npy',help='Path to input numpy file for pop909 dataset')
-    parser.add_argument('--answer', type=str, help='Path to answer numpy file for pop909 dataset')
-    parser.add_argument('--dict', type=str, default='../../../dict/CP.pkl')
+    parser.add_argument('--dict', type=str, default='../../dict/CP.pkl')
+    parser.add_argument('--name', type=str, help='Used for output directory name', required=True)
     
     ### parameter setting ###
-    parser.add_argument('--layer', type=str, default='12', help='specify embedding layer index')
     parser.add_argument('--class-num', type=int)
-    parser.add_argument('--hs', type=int, default=256)
     parser.add_argument('--train-batch', default=16, type=int)
     parser.add_argument('--dev-batch', default=8, type=int)
-    parser.add_argument('--name', type=str, help='Used for output directory name', required=True)
-    parser.add_argument('--cuda', default=0, type=int, help='Specify cuda number')
-    parser.add_argument('--gain', type=float, default=2.5)
+    parser.add_argument('--epoch', default=500, type=int)
+    parser.add_argument('--patience', default=20, type=int)
     parser.add_argument('--lr', type=float, default=1e-3)
+    
+    parser.add_argument('--cuda', default=0, type=int, help='Specify cuda number')
 
     args = parser.parse_args()
     
     if args.task == 'melody':
-        args.answer ='/home/yh1488/NAS-189/home/CP_data/POP909cp_melans.npy'
         args.class_num = 3
     elif args.task == 'velocity':
-        args.answer ='/home/yh1488/NAS-189/home/CP_data/POP909cp_velans.npy'
         args.class_num = 6 
-    
+   
     return args
 
 
-def load_ft_data(layer, task):
-    task_name = 'melody identification' if task == 'melody' else 'velocity classification'
-    print("\nloading data for fine-tuning {} ...".format(task_name))
-    print("Using embedding layer {}".format(layer))
-    X_train = np.load('/home/yh1488/NAS-189/home/BERT/cp_embed/POPtrain_' + layer + '.npy')
-    X_val = np.load('/home/yh1488/NAS-189/home/BERT/cp_embed/POPvalid_' + layer + '.npy')
-
-    return X_train, X_val
-
-def load_data(data, task):
+def load_data(task):
     task_name = 'melody identification' if task == 'melody' else 'velocity classification'
     print("\nloading data for {} ...".format(task_name))
-    all = np.load(data)
-    X_train, X_val, _ = np.split(all, [int(.8 * len(all)), int(.9 * len(all))])
     
-    return X_train, X_val
+    root = '../../data/CP/pop909_'
+    X_train = np.load(root+'train.npy', allow_pickle=True)
+    X_val = np.load(root+'valid.npy', allow_pickle=True)
+    y_train = np.load(root+'train_'+task[:3]+'ans.npy', allow_pickle=True)
+    y_val = np.load(root+'valid_'+task[:3]+'ans.npy', allow_pickle=True)
+    
+    return X_train, X_val, y_train, y_val
 
 
 def main():
@@ -84,29 +66,23 @@ def main():
     device = torch.device(cuda_str if torch.cuda.is_available() else 'cpu')
     print(device)
 
-    exp_name = '-finetune' if args.finetune else '-LSTM'
-    exp_dir = os.path.join('result', args.task + exp_name, args.name)
+    exp_dir = os.path.join('result', args.task + '-LSTM', args.name)
     target_jsonpath = exp_dir
     
     if not os.path.exists(exp_dir):
         Path(exp_dir).mkdir(parents = True, exist_ok = True)
 
-    train_epochs = 1000
+    train_epochs = args.epoch
     lr = args.lr 
-    patience = 20
+    patience = args.patience
     
     print("loading dictionary...")
     with open(args.dict, 'rb') as f:
         e2w, w2e = pickle.load(f)
 
     # prepare data to 80:10:10
-    if args.finetune:
-        X_train, X_val = load_ft_data(args.layer, args.task)
-    else:
-        X_train, X_val = load_data(args.input, args.task)
+    X_train, X_val, y_train, y_val = load_data(args.task)
     
-    all_ans = np.load(args.answer)
-    y_train, y_val, _ = np.split(all_ans, [int(.8 * len(all_ans)), int(.9 * len(all_ans))])
     
     trainset = PopDataset(X=X_train, y=y_train)
     validset = PopDataset(X=X_val, y=y_val) 
@@ -116,16 +92,7 @@ def main():
     print("   len of valid_loader", len(valid_loader))
     
     print("\ninitializing model...")    
-    if args.finetune:
-        model = LSTM_Finetune(class_num=args.class_num, hidden_size=args.hs)
-    else:
-        model = LSTM_Net(e2w=e2w, class_num=args.class_num)
-    
-    #for name, param in model.named_parameters():
-        # nn.init.constant(param, 0.0)
-    #    if 'weight' in name and args.task == 'velocity':
-    #        torch.nn.init.xavier_uniform_(param, gain=args.gain)
-
+    model = LSTM_Net(e2w=e2w, class_num=args.class_num)
     model.cuda(cuda_num)
 
     optimizer = torch.optim.SGD(
@@ -141,7 +108,7 @@ def main():
             cooldown=10
         )
 
-    es = utils.EarlyStopping(patience= patience)
+    es = utils.EarlyStopping(patience = patience)
     
     t = tqdm.trange(1, train_epochs +1, disable = False)
     train_losses, train_accs = [], []
@@ -152,11 +119,10 @@ def main():
     print("   start training...")
 
     for epoch in t:
-#        break
         t.set_description("Training Epoch")
         end = time.time()
-        train_loss, train_acc = training(model, device, train_loader, optimizer, args.finetune)
-        valid_loss, valid_acc = valid(model, device, valid_loader, args.finetune)
+        train_loss, train_acc = training(model, device, train_loader, optimizer)
+        valid_loss, valid_acc = valid(model, device, valid_loader)
         
         scheduler.step(valid_loss)
         train_losses.append(train_loss.item())
@@ -188,7 +154,6 @@ def main():
             # save params
         params = {
                 'epochs_trained': epoch,
-#                'args': vars(args),
                 'best_loss': es.best,
                 'best_epoch': best_epoch,
                 'train_loss_history': train_losses,
@@ -197,7 +162,6 @@ def main():
                 'valid_acc_history': valid_accs,
                 'train_time_history': train_times,
                 'num_bad_epochs': es.num_bad_epochs,
-    #            'commit': commit
             }
 
         with open(os.path.join(target_jsonpath,  'LSTM-' + args.task + '.json'), 'w') as outfile:
@@ -207,7 +171,6 @@ def main():
         
         if stop:
                 print("Apply Early Stopping and retrain")
-#                break
                 stop_t +=1
                 if stop_t >=5:
                     break

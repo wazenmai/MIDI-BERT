@@ -20,7 +20,7 @@ from sklearn.metrics import confusion_matrix
 def training(model, device, train_loader, optimizer, batch, class_num):
     model.train()
     
-    train_loss, total_acc = 0, 0
+    train_loss = 0 
     pbar = tqdm.tqdm(train_loader, disable = False)
 
     for x, y in pbar:

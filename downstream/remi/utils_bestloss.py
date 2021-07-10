@@ -3,8 +3,6 @@ import torch
 import os
 import numpy as np
 
-""" 0718: added parameters "best_loss" to early stop to prevent overwritting best_loss after retrain """
-
 def _sndfile_available():
     try:
         import soundfile
