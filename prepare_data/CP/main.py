@@ -1,4 +1,4 @@
-from modelCP_task import *
+from model import *
 import numpy as np
 import argparse
 import os
@@ -13,13 +13,13 @@ def get_args():
 
     ### path ###
     parser.add_argument('--dict', default='../../dict/CP.pkl')
-    parser.add_argument('--dataset', choices=["pop909", "pop17k"], required=True)
+    parser.add_argument('--dataset', choices=["pop909", "pop1k7"], required=True)
 
     ### parameter ###
     parser.add_argument('--max_len', default=512)
     
     ### output ###    
-    parser.add_argument('--dir', default="CP_data")
+    parser.add_argument('--dir', default="../../data/CP")
 
     args = parser.parse_args()
 
@@ -30,7 +30,7 @@ def get_args():
 
 
 def extract(files, args, model, mode):
-    print('number of {} files: {}'.format(mode, len(files)))  # 693,86,86
+    print('number of {} files: {}'.format(mode, len(files)))  
     segments, ans = model.prepare_data(files, args.task, int(args.max_len))
     print('segment shape', segments.shape)
     output_file = args.dir + '/' + args.dataset + '_' + mode + '.npy'
@@ -48,15 +48,16 @@ def main():
     pathlib.Path(args.dir).mkdir(parents=True, exist_ok=True)
     
     # initialize model
-    model = PopMusicTransformer(
-        checkpoint=args.dict,
-        is_training=True)
+    model = CP(dict=args.dict)
 
     root = '/home/yh1488/NAS-189/home/'
     if args.dataset == 'pop909':
         files = glob.glob(root+'Dataset/pop909_aligned/*.mid')  
-    elif args.dataset == 'pop17k':
-        files = glob.glob(root+'Dataset/pop17k/*/*.mid')
+    elif args.dataset == 'pop1k7':
+        files = glob.glob(root+'Dataset/pop1k7/*/*.mid')
+    else:
+        print('not supported')
+        exit(1)
 
     print('number of files', len(files))
 
