@@ -44,13 +44,14 @@ You can also preprocess as below.
 
 * [Pop17K](https://github.com/YatingMusic/compound-word-transformer)
 * [ASAP](https://github.com/fosfrancesco/asap-dataset)
+  * preprocess to have 65 pieces in qualified 4/4 time signature
 * [POP909](https://github.com/music-x-lab/POP909-Dataset)
   * preprocess to have 865 pieces in qualified 4/4 time signature
   * ```exploratory.py``` to get pieces qualified in 4/4 time signature and save at ```qual_pieces.pkl```
   * ```preprocess.py``` to realign and preprocess
   * Special thanks to Shih-Lun (Sean) Wu
-* [Pianist8]()
-* [EMOPIA]()
+* [Pianist8](https://zenodo.org/record/5089279)
+* [EMOPIA](https://annahung31.github.io/EMOPIA/)
 
 ### 2. prepare dict
 

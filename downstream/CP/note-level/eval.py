@@ -1,11 +1,15 @@
-import numpy as np
-from model_lstm import LSTM_Net
-from model_finetune import LSTM_Finetune
+import sys
+sys.path.append('../../CP')
+
 import torch
 import pickle
 import argparse
-from sklearn.metrics import confusion_matrix
+import numpy as np
 from cm_fig import save_cm_fig
+from model_lstm import LSTM_Net
+from model_finetune import LSTM_Finetune
+from sklearn.metrics import confusion_matrix
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='Argument Parser for downstream evaluation')
