@@ -4,6 +4,9 @@ Created on Dec 14 2020
 
 @author: Yi-Hui (Sophia) Chou 
 """
+import sys
+sys.path.append('../../CP')
+
 import os
 from model_lstm import LSTM_Net 
 from model_finetune import LSTM_Finetune
@@ -14,7 +17,7 @@ import torch
 import torch.nn as nn
 from pathlib import Path
 import json
-import utils_bestloss as utils
+import downstream.CP.utils_bestloss as utils
 import time
 from train import training, valid
 import numpy as np
@@ -31,7 +34,7 @@ def get_args():
     ### path setup ### 
     parser.add_argument('--input', type=str, default='/home/yh1488/NAS-189/home/CP_data/POP909cp.npy',help='Path to input numpy file for pop909 dataset')
     parser.add_argument('--answer', type=str, help='Path to answer numpy file for pop909 dataset')
-    parser.add_argument('--dict', type=str, default='../remi/my-checkpoint/CP.pkl')
+    parser.add_argument('--dict', type=str, default='../../../dict/CP.pkl')
     
     ### parameter setting ###
     parser.add_argument('--layer', type=str, default='12', help='specify embedding layer index')
