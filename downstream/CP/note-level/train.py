@@ -4,6 +4,8 @@ Created on Dec 14 2020
 
 @author: Yi-Hui (Sophia) Chou 
 """
+import sys
+sys.path.append('../../CP')
 
 from torch.utils.data import DataLoader
 import tqdm
