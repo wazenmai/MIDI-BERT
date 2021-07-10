@@ -20,8 +20,7 @@ def get_args():
     ### path setup ###
     parser.add_argument('--dict_file', type=str, default='../../dict/CP.pkl')
     parser.add_argument('--name', type=str, default='')
-#    parser.add_argument('--ckpt', default='result/pretrain/default/model_best.ckpt')
-    parser.add_argument('--ckpt', default='/home/yh1488/NAS-189/home/BERT/cp_result/pretrain/model-batch12_best.ckpt')
+    parser.add_argument('--ckpt', default='result/pretrain/default/model_best.ckpt')
 
     ### parameter setting ###
     parser.add_argument('--num_workers', type=int, default=5)
