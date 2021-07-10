@@ -1,12 +1,44 @@
 # MidiBERT-Piano
 
+If you'd like to reproduce the results (MidiBERT) shown in the paper, please 
+
+1. download the [checkpoints](https://drive.google.com/drive/folders/1ceIfC1UugZQHPgpEEMkdAF0VhZ1EeLl3?usp=sharing), and rename files like the following
+
+```
+under folder MidiBERT/CP/
+result
+└── finetune
+	└── melody_default
+		└── model_best.ckpt
+	└── velocity_default
+		└── model_best.ckpt
+	└── composer_default
+		└── model_best.ckpt
+	└── emotion_default
+		└── model_best.ckpt
+```
+
+
+
+2. refer to **C. 2.evaluation**.  
+
+![image-20210710185007453](fig/result.png)
+
+, and you are free to go!  *(btw, no gpu is needed)*
+
+
+
 ## Installation
 
 * Python3
 * ```pip install -r requirements.txt```
-* [TODO] add a requirement file!
+* [TODO] add a requirement file! (有可以自動抓package的code)
 
 ## A. Prepare Data
+
+All data in CP/REMI token are stored in ```data/CP``` & ```data/remi```, respectively, including the train, valid, test split.
+
+You can also preprocess as below.
 
 ### 1. download dataset and preprocess
 
@@ -32,10 +64,12 @@ In this paper, we only use *Bar*, *Position*, *Pitch*, *Duration*.  And we provi
 
 ### 3. prepare CP & REMI
 
+==TODO== model_CP.py 改成 utility
+
 ```./prepare_data/CP```
 
 * For POP909 & Pop17K, run ```python3 POP2cp_task.py ```.  Please specify the dataset and whether you wanna prepare an answer array for a note-level task (i.e. melody extraction and velocity prediction).
-* For example, ```python3 POP2cp_task.py --dataset=pop909 --task=melody --dir=[YOUR_DIR_TO_STORE_DATA (default: CP_data)]```
+* For example, ```python3 POP2cp_task.py --dataset=pop909 --task=melody --dir=[DIR_TO_STORE_DATA]```
 
 * [TODO] emopia, pianist8, asap dataset
 
@@ -45,36 +79,47 @@ In this paper, we only use *Bar*, *Position*, *Pitch*, *Duration*.  And we provi
 
 Acknowledgement: [CP repo](https://github.com/YatingMusic/compound-word-transformer), [remi repo](https://github.com/YatingMusic/remi/tree/6d407258fa5828600a5474354862353ef4e4e8ae)
 
+You may encode these midi files in different representations, the data split is in ***.
+
 ## B. Pre-train a MidiBERT-Piano
-
-Acknowledgement: [Huggingface](https://github.com/huggingface/transformers)
-
-===TODO===
 
 ```./BERT/CP``` and ```./BERT/remi```
 
 * ```main.py```
-* For example, ```python3 main.py```
+* For example, ```python3 main.py --name=default```.
+* A folder named ```CP_result/pretrain/default/``` will be created, with checkpoint & log inside.
+* Feel free to select given dataset and add your own dataset.  To do this, add ```--dataset```, and specify the respective path in ```load_data()``` function.
+* Ex: ```python3 main.py --name=default --dataset pop1k7 asap``` to pre-train a model with only 2 datasets
 
+Acknowledgement: [HuggingFace](https://github.com/huggingface/transformers)
 
+Special thanks to Chin-Jui Chang
 
 ## C. Fine-tune & Evaluate on Downstream Tasks
 
 ```./BERT/CP``` and ```./BERT/remi```
 
-===TODO===
+### 1. fine-tuning
 
 * ```finetune.py```
-* For instance, ```python3 finetune.py --task=melody --name=mlm_batch12```
+* For instance, ```python3 finetune.py --task=melody --name=default```
+* A folder named ```CP_result/finetune/{name}/``` will be created, with checkpoint & log inside.
+
+### 2. evaluation
+
 * ```eval.py```
-* For example, ```python3 eval.py --task=melody --off_cuda --ckpt=[ckpt_path]```
-* Test loss & accuracy will be printed, and a confusion matrix will be saved.
+* For example, ```python3 eval.py --task=melody --cpu --ckpt=[ckpt_path]```
+* Test loss & accuracy will be printed, and a figure of confusion matrix will be saved.
+
+The same logic applies to REMI representation. 
 
 ## D. Baseline Model (Bi-LSTM)
 
 ```./baseline```
 
 ===TODO===
+
+Special thanks to Ching-Yu (Sunny) Chiu
 
 ## E. Skyline
 
@@ -86,8 +131,6 @@ There are 2 way to report its accuracy:
 
 1. Consider *Bridge* as *Accompaniment*, attains 78.54% accuracy
 2. Consider *Bridge* as *Melody*, attains 79.51%
-
-
 
 ## Citation
 
