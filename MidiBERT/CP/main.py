@@ -20,7 +20,7 @@ def get_args():
     parser.add_argument('--name', type=str, default='MidiBert')
 
     ### pre-train dataset ###
-    parser.add_argument("--dataset", type=str, nargs='+', default=['pop909','composer', 'pop17k', 'ASAP', 'emopia'])
+    parser.add_argument("--dataset", type=str, nargs='+', default=['pop909','composer', 'pop1k7', 'ASAP', 'emopia'])
     
     ### parameter setting ###
     parser.add_argument('--num_workers', type=int, default=5)
@@ -44,8 +44,7 @@ def load_data(dataset):
     to_concat = []
     
     if 'pop909' in dataset:
-        #root = '../prepare_data/CP/CP_data/pop909_'
-        root = '/home/yh1488/NAS-189/home/CP_data/pop909_'
+        root = '../../data/CP/pop909_'
         X_train = np.load(root+'train.npy', allow_pickle=True)
         X_val = np.load(root+'valid.npy', allow_pickle=True)
         X_test = np.load(root+'test.npy', allow_pickle=True)
@@ -54,8 +53,7 @@ def load_data(dataset):
         to_concat.append(POP909)
 
     if 'composer' in dataset:
-        #composer_root = '../prepare_data/CP/CP_data/composer_cp_'
-        composer_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_'
+        composer_root = '../../data/CP/composer_cp_'
         composer_train = np.load(composer_root+'train.npy', allow_pickle=True)
         composer_valid = np.load(composer_root+'valid.npy', allow_pickle=True)
         composer_test = np.load(composer_root+'test.npy', allow_pickle=True)
@@ -63,23 +61,20 @@ def load_data(dataset):
         print('   Composer:', composer.shape)
         to_concat.append(composer)
 
-    if 'pop17k' in dataset:
-        #pop17k_path = '../prepare_data/CP/CP_data/pop17k.npy'
-        pop17k_path = '/home/yh1488/NAS-189/home/CP_data/ai17k.npy'
-        pop17k = np.load(pop17k_path, allow_pickle=True)
-        print('   pop17k:', pop17k.shape)
-        to_concat.append(pop17k)
+    if 'pop1k7' in dataset:
+        pop1k7_path = '../../data/CP/pop1k7.npy'
+        pop1k7 = np.load(pop1k7_path, allow_pickle=True)
+        print('   pop1k7:', pop1k7.shape)
+        to_concat.append(pop1k7)
 
     if 'ASAP' in dataset:
-        #ASAP_path = '../prepare_data/CP/CP_data/ASAP_CP.npy'
-        ASAP_path = '/home/yh1488/NAS-189/homes/wazenmai/MIDI-BERT/for_wazenmai/prepare_CP/ASAP_CP.npy'
+        ASAP_path = '../../data/CP/ASAP_CP.npy'
         ASAP = np.load(ASAP_path, allow_pickle=True)
         print('   ASAP:', ASAP.shape)
         to_concat.append(ASAP)
 
     if 'emopia' in dataset:
-        #emopia_root = '../prepare_data/CP/CP_data/emopia_'
-        emopia_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/emopia_dataset/CP/emopia_'
+        emopia_root = '../../data/CP/emopia_'
         X_train = np.load(emopia_root+'train.npy', allow_pickle=True)
         X_val = np.load(emopia_root+'valid.npy', allow_pickle=True)
         X_test = np.load(emopia_root+'test.npy', allow_pickle=True)
@@ -118,7 +113,6 @@ def main():
     valid_loader = DataLoader(validset, batch_size=args.batch_size, num_workers=args.num_workers)
     print("   len of valid_loader",len(valid_loader))
 
-
     print("\nBuilding BERT model")
     configuration = BertConfig(max_position_embeddings=args.max_seq_len,
                                 position_embedding_type='relative_key_query',
@@ -130,9 +124,8 @@ def main():
     
     print("\nTraining Start")
     save_dir = 'result/pretrain/' + args.name
-    #save_dir = '/home/yh1488/NAS-189/homes/yh1488/BERT/cp_result/pretrain/'+args.name
     os.makedirs(save_dir, exist_ok=True)
-    filename = save_dir + 'model-' + args.name + '.ckpt'
+    filename = os.path.join(save_dir, 'model.ckpt')
     print("   save model at {}".format(filename))
 
     best_acc, best_epoch = 0, 0
@@ -164,8 +157,8 @@ def main():
 
 
         with open(os.path.join(save_dir, 'log'), 'a') as outfile:
-            outfile.write('Epoch {}: train_loss={}, valid_loss={}, train_acc={}, valid_acc={}\n'.format(
-                epoch+1, train_loss, valid_loss, train_acc, valid_acc))
+            outfile.write('Epoch {}: train_loss={}, train_acc={}, valid_loss={}, valid_acc={}\n'.format(
+                epoch+1, train_loss, train_acc, valid_loss, valid_acc))
 
 
 if __name__ == '__main__':
