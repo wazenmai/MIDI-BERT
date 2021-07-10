@@ -25,46 +25,48 @@ def get_args():
 
     ### mode ###
     parser.add_argument('--task', choices=['melody', 'velocity','composer', 'emotion'], required=True)
+    
     ### path setup ###
-    parser.add_argument('--dict_file', type=str, default='dict/compact4/CP.pkl')
-    parser.add_argument('--name', type=str, default='')
-    parser.add_argument('--ckpt', default='/home/yh1488/NAS-189/home/BERT/cp_result/finetune/')
+    parser.add_argument('--dict_file', type=str, default='../../dict/CP.pkl')
+    parser.add_argument('--ckpt', type=str, default='')
 
     ### parameter setting ###
     parser.add_argument('--num_workers', type=int, default=5)
     parser.add_argument('--class_num', type=int)
     parser.add_argument('--batch_size', type=int, default=12)
-    parser.add_argument('--mask_percent', type=float, default=0.15, help="Up to `valid_seq_len * target_max_percent` tokens will be masked out for prediction")
     parser.add_argument('--max_seq_len', type=int, default=512, help='all sequences are padded to `max_seq_len`')
     parser.add_argument('--hs', type=int, default=768)
     parser.add_argument("--index_layer", type=int, default=12, help="number of layers")
-    parser.add_argument("-l", "--layers", type=int, default=8, help="number of layers")
-    parser.add_argument("-a", "--attn_heads", type=int, default=8, help="number of attention heads")
-    parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')
     parser.add_argument('--lr', type=float, default=2e-5, help='initial learning rate')
-    parser.add_argument("--adam_weight_decay", type=float, default=0.01, help="weight_decay of adam")
     
     ### cuda ###
-    parser.add_argument('--off_cuda', action="store_false")  # default: true
+    parser.add_argument('--cpu', action="store_true")  # default: false
     parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1,2,3], help="CUDA device ids")
 
     args = parser.parse_args()
 
+    root = 'result/finetune/'
+
     if args.task == 'melody':
         args.class_num = 4
+        args.ckpt = root + 'melody_default/model_best.ckpt' if args.ckpt=='' else args.ckpt
     elif args.task == 'velocity':
         args.class_num = 7
+        args.ckpt = root + 'velocity_default/model_best.ckpt' if args.ckpt=='' else args.ckpt
     elif args.task == 'composer':
         args.class_num = 8
+        args.ckpt = root + 'composer_default/model_best.ckpt' if args.ckpt=='' else args.ckpt
     elif args.task == 'emotion':
         args.class_num = 4
+        args.ckpt = root + 'emotion_default/model_best.ckpt' if args.ckpt=='' else args.ckpt
 
     return args
 
 
 def load_data(dataset, task):
+    data_root = '../../data/CP/'
     if dataset == 'pop909':
-        root = '/home/yh1488/NAS-189/home/CP_data/pop909_'
+        root = data_root + 'pop909_'
         X_train = np.load(root+'train.npy', allow_pickle=True)
         X_val = np.load(root+'valid.npy', allow_pickle=True)
         X_test = np.load(root+'test.npy', allow_pickle=True)
@@ -73,7 +75,7 @@ def load_data(dataset, task):
         y_test = np.load(root+'test_'+task[:3]+'ans.npy', allow_pickle=True)
 
     elif dataset == 'composer':
-        composer_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/composer_dataset/CP/composer_cp_'
+        composer_root = data_root + 'composer_cp_'
         X_train = np.load(composer_root+'train.npy', allow_pickle=True)
         X_val = np.load(composer_root+'valid.npy', allow_pickle=True)
         X_test = np.load(composer_root+'test.npy', allow_pickle=True)
@@ -81,13 +83,8 @@ def load_data(dataset, task):
         y_val = np.load(composer_root+'valid_ans.npy', allow_pickle=True)
         y_test = np.load(composer_root+'test_ans.npy', allow_pickle=True)
 
-    elif dataset == 'ailabs17k':
-        remi1700_path = '/home/yh1488/NAS-189/home/CP_data/ai17k.npy'
-        remi1700 = np.load(remi1700_path, allow_pickle=True)
-        print('   ailabs17k:', remi1700.shape)
-
     elif dataset == 'emotion':
-        emopia_root = '/home/yh1488/NAS-189/homes/wazenmai/datasets/MIDI-BERT/emopia_dataset/CP/emopia_'
+        emopia_root = data_root + 'emopia_'
         X_train = np.load(emopia_root+'train.npy', allow_pickle=True)
         X_val = np.load(emopia_root+'valid.npy', allow_pickle=True)
         X_test = np.load(emopia_root+'test.npy', allow_pickle=True)
@@ -113,9 +110,7 @@ def conf_mat(_y, output, task):
         target_names = ['pp','p','mp','mf','f','ff']
         seq = False
     elif task == 'composer':
-        #target_names = ['Bethel','Clayderman','Einaudi','Hancock','Hillsong','Hisaishi','Ryuichi','Yiruma']
-        #target_names = ['M', 'C', 'E','H','W','J','S','Y']
-        target_names = ['C','Y','H','E','J','S','M','W']
+        target_names = ['M', 'C', 'E','H','W','J','S','Y']
         seq = True
     elif task == 'emotion':
         target_names = ['HAHV', 'HALV', 'LALV', 'LAHV']
@@ -125,13 +120,11 @@ def conf_mat(_y, output, task):
     output = output.reshape(-1,1)
     _y = _y.reshape(-1,1)
     
-    cm = confusion_matrix(_y, output) #,labels=[1,7,3,2,5,6,0,4])
-    
-    print(cm)
+    cm = confusion_matrix(_y, output) 
     
     _title = 'BERT (CP): ' + task + ' task'
     
-    save_cm_fig(cm, classes=target_names, normalize=False,
+    save_cm_fig(cm, classes=target_names, normalize=True,
                 title=_title, seq=seq)
 
 
@@ -181,11 +174,11 @@ def main():
     index_layer = int(args.index_layer)-13
     print("\nCreating Finetune Trainer using index layer", index_layer)
     trainer = FinetuneTrainer(midibert, train_loader, valid_loader, test_loader, index_layer, args.lr, args.class_num,
-                                args.hs, y_test.shape, args.off_cuda, args.cuda_devices, model, seq_class)
+                                args.hs, y_test.shape, args.cpu, args.cuda_devices, model, seq_class)
   
     
     test_loss, test_acc, all_output = trainer.test()
-    print(test_loss, test_acc)
+    print('test loss: {}, test_acc: {}'.format(test_loss, test_acc))
 
     conf_mat(y_test, all_output, args.task)
 
