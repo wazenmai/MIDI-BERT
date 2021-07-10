@@ -1,11 +1,13 @@
 # MidiBERT-Piano
 
-If you'd like to reproduce the results (MidiBERT) shown in the paper, please 
+If you'd like to reproduce the results (MidiBERT) shown in the paper, 
 
-1. download the [checkpoints](https://drive.google.com/drive/folders/1ceIfC1UugZQHPgpEEMkdAF0VhZ1EeLl3?usp=sharing), and rename files like the following
+![image-20210710185007453](fig/result.png)
+
+1. please download the [checkpoints](https://drive.google.com/drive/folders/1ceIfC1UugZQHPgpEEMkdAF0VhZ1EeLl3?usp=sharing), and rename files like the following
 
 ```
-under folder MidiBERT/CP/
+MidiBERT/{CP/remi}/
 result
 └── finetune
 	└── melody_default
@@ -20,11 +22,9 @@ result
 
 
 
-2. refer to **C. 2.evaluation**.  
+2. please refer to **C. 2.evaluation**.  
 
-![image-20210710185007453](fig/result.png)
-
-, and you are free to go!  *(btw, no gpu is needed)*
+, and you are free to go!  *(btw, no gpu is needed for evaluation)*
 
 
 
@@ -65,12 +65,10 @@ In this paper, we only use *Bar*, *Position*, *Pitch*, *Duration*.  And we provi
 
 ### 3. prepare CP & REMI
 
-==TODO== model_CP.py 改成 utility
-
 ```./prepare_data/CP```
 
-* For POP909 & Pop17K, run ```python3 POP2cp_task.py ```.  Please specify the dataset and whether you wanna prepare an answer array for a note-level task (i.e. melody extraction and velocity prediction).
-* For example, ```python3 POP2cp_task.py --dataset=pop909 --task=melody --dir=[DIR_TO_STORE_DATA]```
+* For POP909 & Pop17K, run ```python3 main.py ```.  Please specify the dataset and whether you wanna prepare an answer array for a note-level task (i.e. melody extraction and velocity prediction).
+* For example, ```python3 main.py --dataset=pop909 --task=melody --dir=[DIR_TO_STORE_DATA]```
 
 * [TODO] emopia, pianist8, asap dataset
 
@@ -116,9 +114,19 @@ The same logic applies to REMI representation.
 
 ## D. Baseline Model (Bi-LSTM)
 
-```./baseline```
+```./baseline/CP``` & ```./baseline/remi```
 
-===TODO===
+* Train a Bi-LSTM
+
+```python3 main.py --task=melody --name=0710```
+
+* Evaluate
+
+```python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth```
+
+==TODO== seq-level tasks model
+
+The same logic applies to REMI representation. 
 
 Special thanks to Ching-Yu (Sunny) Chiu
 
@@ -140,8 +148,8 @@ If you find this useful, please cite our paper.
 ```
 @article{
 	title={MidiBERT-Piano: Large-scale Pre-training forSymbolic Music Understanding},
-	author={},
-	year={},
+	author={Yi-Hui Chou*, I-Chun Chen*, Chin-Jui Chang, Joann Ching, and Yi-Hsuan Yang},
+	year={2021},
 }
 ```
 
