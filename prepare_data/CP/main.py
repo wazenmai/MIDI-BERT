@@ -50,11 +50,10 @@ def main():
     # initialize model
     model = CP(dict=args.dict)
 
-    root = '/home/yh1488/NAS-189/home/'
     if args.dataset == 'pop909':
-        files = glob.glob(root+'Dataset/pop909_aligned/*.mid')  
+        files = glob.glob('../../Dataset/pop909_aligned/*.mid')  
     elif args.dataset == 'pop1k7':
-        files = glob.glob(root+'Dataset/pop1k7/*/*.mid')
+        files = glob.glob('../../Dataset/pop1k7/*/*.mid')
     else:
         print('not supported')
         exit(1)

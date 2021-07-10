@@ -1,4 +1,4 @@
-from model_task import *
+from model import *
 import numpy as np
 import argparse
 import pathlib
@@ -17,7 +17,7 @@ def get_args():
     parser.add_argument('--max_len', default=512)
     
     ### output ###    
-    parser.add_argument('--dir', default="remi_data")
+    parser.add_argument('--dir', default="../../data/remi")
 
     args = parser.parse_args()
 
@@ -45,11 +45,16 @@ def main():
     pathlib.Path(args.dir).mkdir(parents=True, exist_ok=True)
     
     # initialize model
-    model = PopMusicTransformer(
-        checkpoint=args.dict,
-        is_training=True)
+    model = REMI(dict=args.dict)
 
-    files = glob.glob('/home/yh1488/NAS-189/home/Dataset/pop909_aligned/*.mid') 
+    if args.dataset == 'pop909':
+        files = glob.glob('../../Dataset/pop909_aligned/*.mid')  
+    elif args.dataset == 'pop1k7':
+        files = glob.glob('../../Dataset/pop1k7/*/*.mid')
+    else:
+        print('not supported')
+        exit(1)
+
     print('number of files', len(files), '\n')
 
     if args.task:
