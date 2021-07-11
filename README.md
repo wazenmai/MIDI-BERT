@@ -4,6 +4,8 @@
     <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
     
 </p>
+---
+Authors: Yi-Hui Chou, I-Chun Chen
 
 ## Introduction
 [TODO] add arxiv link here and citation
@@ -65,6 +67,7 @@ You can also preprocess as below.
 * [Pop17K](https://github.com/YatingMusic/compound-word-transformer)
 * [ASAP](https://github.com/fosfrancesco/asap-dataset)
   * preprocess to have 65 pieces in qualified 4/4 time signature
+	* please download dataset ASAP to path `Dataset/ASAP`
 * [POP909](https://github.com/music-x-lab/POP909-Dataset)
   * preprocess to have 865 pieces in qualified 4/4 time signature
   * ```exploratory.py``` to get pieces qualified in 4/4 time signature and save at ```qual_pieces.pkl```
