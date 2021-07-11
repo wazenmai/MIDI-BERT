@@ -38,7 +38,7 @@ result
 		└── model_best.ckpt
 ```
 
-2. please refer to **C. 2.evaluation**.  
+2. please refer to <a href="#2.-evaluation">evaluation</a>.  
 
 , and you are free to go!  *(btw, no gpu is needed for evaluation)*
 
