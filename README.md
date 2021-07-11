@@ -4,7 +4,6 @@
     <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
     
 </p>
----
 Authors: Yi-Hui Chou, I-Chun Chen
 
 ## Introduction
@@ -66,15 +65,19 @@ You can also preprocess as below.
 
 * [Pop17K](https://github.com/YatingMusic/compound-word-transformer)
 * [ASAP](https://github.com/fosfrancesco/asap-dataset)
-  * preprocess to have 65 pieces in qualified 4/4 time signature
-	* please download dataset ASAP to path `Dataset/ASAP`
+  * Step 1: Download ASAP dataset from the link
+  * Step 2: Use `Dataset/ASAP_song.pkl` to extract songs to `Dataset/ASAP`
 * [POP909](https://github.com/music-x-lab/POP909-Dataset)
   * preprocess to have 865 pieces in qualified 4/4 time signature
   * ```exploratory.py``` to get pieces qualified in 4/4 time signature and save at ```qual_pieces.pkl```
   * ```preprocess.py``` to realign and preprocess
   * Special thanks to Shih-Lun (Sean) Wu
 * [Pianist8](https://zenodo.org/record/5089279)
+  * Step 1: Download Pianist8 dataset from the link
+  * Step 2: Use `Dataset/pianist8_(mode).pkl` to extracts songs to `Dataset/pianist8/mode`
 * [EMOPIA](https://annahung31.github.io/EMOPIA/)
+  * Step 1: Download Emopia dataset from the link
+  * Step 2: Use `Dataset/emopia_(mode).pkl` to extracts songs to `Dataset/emopia/mode`
 
 ### 2. prepare dict
 
@@ -90,10 +93,8 @@ In this paper, we only use *Bar*, *Position*, *Pitch*, *Duration*.  And we provi
 
 ```./prepare_data/CP```
 
-* For POP909 & Pop17K, run ```python3 main.py ```.  Please specify the dataset and whether you wanna prepare an answer array for a note-level task (i.e. melody extraction and velocity prediction).
+* Run ```python3 main.py ```.  Please specify the dataset and whether you wanna prepare an answer array for the task (i.e. melody extraction, velocity prediction, composer classification and emotion classification).
 * For example, ```python3 main.py --dataset=pop909 --task=melody --dir=[DIR_TO_STORE_DATA]```
-
-* [TODO] emopia, pianist8, asap dataset
 
 ```./prepare_data/remi/```
 
@@ -151,19 +152,29 @@ Test loss & accuracy will be printed, and a figure of confusion matrix will be s
 
 ```./baseline/CP``` & ```./baseline/remi```
 
-* Train a Bi-LSTM
+We seperate our baseline model to note-level tasks, which used a Bi-LSTM, and sequence-level tasks, which used a Bi-LSTM + Self-attention model.
 
-```python
->>> python3 main.py --task=melody --name=0710
-```
+* Train a Bi-LSTM
+	* note-level task
+	```python
+	>>> python3 main.py --task=melody --name=0710
+	```
+	* sequence-level task
+	```python
+	>>> python3 main.py --task=composer --output=0710
+	```
 
 * Evaluate
-
-```python
->>> python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
-```
-
-[TODO] seq-level tasks model
+In note-level task, please specify the checkpoint name.
+In sequence-level task, please specify only the output name you set when you trained.
+	* note-level task
+	```python
+	>>> python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
+	```
+	* sequence-level task
+	```python
+	python3 eval.py --task='composer' --ckpt=0710
+	```
 
 The same logic applies to REMI representation. 
 
