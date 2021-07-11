@@ -3,7 +3,7 @@
     <img src="fig/midibert.png" width="800"/>
     <br>
 </p>
-Authors: Yi-Hui Chou, I-Chun Chen
+Authors: [Yi-Hui (Sophia) Chou](https://github.com/sophia1488), [I-Chun Chen](https://github.com/wazenmai)
 
 ## Introduction
 [TODO] add arxiv link here and citation
