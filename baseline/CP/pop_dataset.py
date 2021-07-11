@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Dec 14 2020
+
+@author: Yi-Hui (Sophia) Chou
+"""
+
 import numpy as np
 from torch.utils.data import Dataset
 import torch
