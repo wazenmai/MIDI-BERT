@@ -1,8 +1,7 @@
 # MidiBERT-Piano
-[TODO] add a figure?
 <p align="center">
-    <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
-    
+    <img src="fig/midibert.png" width="800"/>
+    <br>
 </p>
 Authors: Yi-Hui Chou, I-Chun Chen
 
@@ -45,7 +44,6 @@ result
 
 
 ## Installation
-[TODO] add a requirement file! (有可以自動抓package的code)
 * Python3
 * Install generally used packages for MidiBERT-Piano:
 ```python
