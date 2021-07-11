@@ -28,7 +28,7 @@ def get_args():
     parser.add_argument('--task', choices=['composer', 'emotion'], required=True)
 
     ### path setup ###
-    parser.add_argument('--input', type=str, help='Path to input numpy file for pop909 dataset')
+    parser.add_argument('--input', type=str, default='../../../data/remi', help='Path to input numpy file for pop909 dataset')
     parser.add_argument('--dict', type=str, default="../../../BERT/dict/remi.pkl", help='Path to dictionary of event')
     parser.add_argument('--output', type=str, help='Used for output directory name', required=True)
     

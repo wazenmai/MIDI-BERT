@@ -29,7 +29,7 @@ def get_args():
     parser.add_argument('--task', choices=['composer', 'emotion'], required=True)
     parser.add_argument('--draw', action='store_true', help='draw and save confusion matrix')
     ### path setup ### 
-    parser.add_argument('--input', type=str, default='',help='Path to input numpy folder for composer dataset', required=True)
+    parser.add_argument('--input', type=str, default='../../../data/CP',help='Path to input numpy folder for composer dataset', required=True)
     parser.add_argument('--dict', type=str, default='../../../BERT/dict/CP.pkl')
     parser.add_argument('--ckpt', type=str, help='Checkpoint folder name', required=True)
 

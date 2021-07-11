@@ -33,7 +33,7 @@ def get_args():
     parser.add_argument('--task', choices=['composer', 'emotion'], required=True)
 
     ### path setup ### 
-    parser.add_argument('--input', type=str, default='',help='Path to input numpy folder for composer dataset')
+    parser.add_argument('--input', type=str, default='../../../data/CP',help='Path to input numpy folder for composer dataset')
     parser.add_argument('--dict', type=str, default='../../../BERT/dict/CP.pkl')
     parser.add_argument('--output', type=str, help='Used for output directory name', required=True)
     
