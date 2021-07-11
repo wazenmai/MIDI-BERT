@@ -1,7 +1,25 @@
 # MidiBERT-Piano
+[TODO] add a figure?
+<p align="center">
+    <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+    
+</p>
 
+## Introduction
+[TODO] add arxiv link here and citation
+
+This is the official repository for the paper, [MidiBERT-Piano: Large-scale Pre-training forSymbolic Music Understanding]().
+
+With this repository, you can
+* pre-train a MidiBERT-Piano with your customized pre-trained dataset
+* fine-tune & evaluate on 4 downstream tasks
+* compare its performance with a Bi-LSTM
+
+All the datasets employed in this work are publicly available.
+
+
+## Quick Start
 If you'd like to reproduce the results (MidiBERT) shown in the paper, 
-
 ![image-20210710185007453](fig/result.png)
 
 1. please download the [checkpoints](https://drive.google.com/drive/folders/1ceIfC1UugZQHPgpEEMkdAF0VhZ1EeLl3?usp=sharing), and rename files like the following
@@ -20,19 +38,21 @@ result
 		└── model_best.ckpt
 ```
 
-
-
-2. please refer to **C. 2.evaluation**.  
+2. please refer to <a href="#2-evaluation">evaluation</a>.  
 
 , and you are free to go!  *(btw, no gpu is needed for evaluation)*
 
 
-
 ## Installation
-
+[TODO] add a requirement file! (有可以自動抓package的code)
 * Python3
-* ```pip install -r requirements.txt```
-* [TODO] add a requirement file! (有可以自動抓package的code)
+* Install generally used packages for MidiBERT-Piano:
+```python
+>>> git clone https://github.com/wazenmai/MIDI-BERT.git
+>>> cd MIDI-BERT
+>>> pip install -r requirements.txt
+```
+
 
 ## A. Prepare Data
 
@@ -82,13 +102,21 @@ You may encode these midi files in different representations, the data split is 
 
 ## B. Pre-train a MidiBERT-Piano
 
-```./BERT/CP``` and ```./BERT/remi```
+```./MidiBERT/CP``` and ```./MidiBERT/remi```
 
-* ```main.py```
-* For example, ```python3 main.py --name=default```.
-* A folder named ```CP_result/pretrain/default/``` will be created, with checkpoint & log inside.
-* Feel free to select given dataset and add your own dataset.  To do this, add ```--dataset```, and specify the respective path in ```load_data()``` function.
-* Ex: ```python3 main.py --name=default --dataset pop1k7 asap``` to pre-train a model with only 2 datasets
+* pre-train a MidiBERT-Piano
+```python
+>>> python3 main.py --name=default
+```
+A folder named ```CP_result/pretrain/default/``` will be created, with checkpoint & log inside.
+
+* customize your own pre-training dataset
+Feel free to select given dataset and add your own dataset.  To do this, add ```--dataset```, and specify the respective path in ```load_data()``` function.
+For example,
+```python
+# to pre-train a model with only 2 datasets
+>>> python3 main.py --name=default --dataset pop1k7 asap	
+``` 
 
 Acknowledgement: [HuggingFace](https://github.com/huggingface/transformers)
 
@@ -96,21 +124,25 @@ Special thanks to Chin-Jui Chang
 
 ## C. Fine-tune & Evaluate on Downstream Tasks
 
-```./BERT/CP``` and ```./BERT/remi```
+```./MidiBERT/CP``` and ```./MidiBERT/remi```
 
 ### 1. fine-tuning
 
 * ```finetune.py```
-* For instance, ```python3 finetune.py --task=melody --name=default```
-* A folder named ```CP_result/finetune/{name}/``` will be created, with checkpoint & log inside.
+```python
+>>> python3 finetune.py --task=melody --name=default
+```
+A folder named ```CP_result/finetune/{name}/``` will be created, with checkpoint & log inside.
 
 ### 2. evaluation
 
 * ```eval.py```
-* For example, ```python3 eval.py --task=melody --cpu --ckpt=[ckpt_path]```
-* Test loss & accuracy will be printed, and a figure of confusion matrix will be saved.
+```python
+>>> python3 eval.py --task=melody --cpu --ckpt=[ckpt_path]
+```
+Test loss & accuracy will be printed, and a figure of confusion matrix will be saved.
 
-The same logic applies to REMI representation. 
+*The same logic applies to REMI representation.*
 
 ## D. Baseline Model (Bi-LSTM)
 
@@ -118,13 +150,17 @@ The same logic applies to REMI representation.
 
 * Train a Bi-LSTM
 
-```python3 main.py --task=melody --name=0710```
+```python
+>>> python3 main.py --task=melody --name=0710
+```
 
 * Evaluate
 
-```python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth```
+```python
+>>> python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
+```
 
-==TODO== seq-level tasks model
+[TODO] seq-level tasks model
 
 The same logic applies to REMI representation. 
 
@@ -132,7 +168,10 @@ Special thanks to Ching-Yu (Sunny) Chiu
 
 ## E. Skyline
 
-Run ```python3 cal_acc.py``` to get the accuracy  on pop909 using skyline algorithm.
+Get the accuracy on pop909 using skyline algorithm
+```python
+>>> python3 cal_acc.py
+```
 
 Since Pop909 contains *melody*, *bridge*, *accompaniment*, yet skyline cannot distinguish  between melody and bridge.
 
@@ -140,6 +179,8 @@ There are 2 way to report its accuracy:
 
 1. Consider *Bridge* as *Accompaniment*, attains 78.54% accuracy
 2. Consider *Bridge* as *Melody*, attains 79.51%
+
+Special thanks to Wen-Yi Hsiao for providing the code for skyline algorithm.
 
 ## Citation
 
