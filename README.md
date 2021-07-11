@@ -7,6 +7,7 @@
 
 ## Introduction
 [TODO] add arxiv link here and citation
+
 This is the official repository for the paper, [MidiBERT-Piano: Large-scale Pre-training forSymbolic Music Understanding]().
 
 With this repository, you can
@@ -159,7 +160,7 @@ Test loss & accuracy will be printed, and a figure of confusion matrix will be s
 >>> python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
 ```
 
-==TODO== seq-level tasks model
+[TODO] seq-level tasks model
 
 The same logic applies to REMI representation. 
 
