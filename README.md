@@ -47,9 +47,9 @@ result
 * Python3
 * Install generally used packages for MidiBERT-Piano:
 ```python
->>> git clone https://github.com/wazenmai/MIDI-BERT.git
->>> cd MIDI-BERT
->>> pip install -r requirements.txt
+git clone https://github.com/wazenmai/MIDI-BERT.git
+cd MIDI-BERT
+pip install -r requirements.txt
 ```
 
 
@@ -108,7 +108,7 @@ You may encode these midi files in different representations, the data split is 
 
 * pre-train a MidiBERT-Piano
 ```python
->>> python3 main.py --name=default
+python3 main.py --name=default
 ```
 A folder named ```CP_result/pretrain/default/``` will be created, with checkpoint & log inside.
 
@@ -117,7 +117,7 @@ Feel free to select given dataset and add your own dataset.  To do this, add ```
 For example,
 ```python
 # to pre-train a model with only 2 datasets
->>> python3 main.py --name=default --dataset pop1k7 asap	
+python3 main.py --name=default --dataset pop1k7 asap	
 ``` 
 
 Acknowledgement: [HuggingFace](https://github.com/huggingface/transformers)
@@ -132,7 +132,7 @@ Special thanks to Chin-Jui Chang
 
 * ```finetune.py```
 ```python
->>> python3 finetune.py --task=melody --name=default
+python3 finetune.py --task=melody --name=default
 ```
 A folder named ```CP_result/finetune/{name}/``` will be created, with checkpoint & log inside.
 
@@ -140,7 +140,7 @@ A folder named ```CP_result/finetune/{name}/``` will be created, with checkpoint
 
 * ```eval.py```
 ```python
->>> python3 eval.py --task=melody --cpu --ckpt=[ckpt_path]
+python3 eval.py --task=melody --cpu --ckpt=[ckpt_path]
 ```
 Test loss & accuracy will be printed, and a figure of confusion matrix will be saved.
 
@@ -155,11 +155,11 @@ We seperate our baseline model to note-level tasks, which used a Bi-LSTM, and se
 * Train a Bi-LSTM
 	* note-level task
 	```python
-	>>> python3 main.py --task=melody --name=0710
+	python3 main.py --task=melody --name=0710
 	```
 	* sequence-level task
 	```python
-	>>> python3 main.py --task=composer --output=0710
+	python3 main.py --task=composer --output=0710
 	```
 
 * Evaluate
@@ -167,7 +167,7 @@ In note-level task, please specify the checkpoint name.
 In sequence-level task, please specify only the output name you set when you trained.
 	* note-level task
 	```python
-	>>> python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
+	python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
 	```
 	* sequence-level task
 	```python
@@ -182,7 +182,7 @@ Special thanks to Ching-Yu (Sunny) Chiu
 
 Get the accuracy on pop909 using skyline algorithm
 ```python
->>> python3 cal_acc.py
+python3 cal_acc.py
 ```
 
 Since Pop909 contains *melody*, *bridge*, *accompaniment*, yet skyline cannot distinguish  between melody and bridge.
