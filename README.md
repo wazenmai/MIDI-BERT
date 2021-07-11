@@ -3,12 +3,12 @@
     <img src="fig/midibert.png" width="800"/>
     <br>
 </p>
-Authors: [Yi-Hui (Sophia) Chou](https://github.com/sophia1488), [I-Chun Chen](https://github.com/wazenmai)
+Authors: <a href="https://sophia1488.github.io">Yi-Hui (Sophia) Chou</a>, <a href="https://github.com/wazenmai">I-Chun Chen</a>
 
 ## Introduction
 [TODO] add arxiv link here and citation
 
-This is the official repository for the paper, [MidiBERT-Piano: Large-scale Pre-training forSymbolic Music Understanding]().
+This is the official repository for the paper, [MidiBERT-Piano: Large-scale Pre-training for Symbolic Music Understanding]().
 
 With this repository, you can
 * pre-train a MidiBERT-Piano with your customized pre-trained dataset
