@@ -201,7 +201,7 @@ If you find this useful, please cite our paper.
 ```
 @article{
 	title={MidiBERT-Piano: Large-scale Pre-training forSymbolic Music Understanding},
-	author={Yi-Hui Chou*, I-Chun Chen*, Chin-Jui Chang, Joann Ching, and Yi-Hsuan Yang},
+	author={Yi-Hui Chou* and I-Chun Chen* and Chin-Jui Chang and Joann Ching, and Yi-Hsuan Yang},
 	year={2021},
 }
 ```
