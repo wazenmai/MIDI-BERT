@@ -165,7 +165,7 @@ We seperate our baseline model to note-level tasks, which used a Bi-LSTM, and se
 * Evaluate
 In note-level task, please specify the checkpoint name.
 In sequence-level task, please specify only the output name you set when you trained.
-	* note-level task
+	* note-level task:
 	```python
 	python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
 	```
