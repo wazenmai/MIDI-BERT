@@ -152,6 +152,9 @@ Test loss & accuracy will be printed, and a figure of confusion matrix will be s
 
 We seperate our baseline model to note-level tasks, which used a Bi-LSTM, and sequence-level tasks, which used a Bi-LSTM + Self-attention model.
 
+For evaluation, in note-level task, please specify the checkpoint name.
+In sequence-level task, please specify only the output name you set when you trained.
+
 * Train a Bi-LSTM
 	* note-level task
 	```python
@@ -163,8 +166,6 @@ We seperate our baseline model to note-level tasks, which used a Bi-LSTM, and se
 	```
 
 * Evaluate
-In note-level task, please specify the checkpoint name.
-In sequence-level task, please specify only the output name you set when you trained.
 	* note-level task:
 	```python
 	python3 eval.py --task=melody --ckpt=result/melody-LSTM/0710/LSTM-melody-classification.pth
