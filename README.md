@@ -3,7 +3,7 @@
     <img src="fig/midibert.png" width="800"/>
     <br>
 </p>
-Authors: <a href="https://sophia1488.github.io">Yi-Hui (Sophia) Chou</a>, <a href="https://github.com/wazenmai">I-Chun Chen</a>
+Authors: <a href="https://sophia1488.github.io">Yi-Hui (Sophia) Chou</a>, <a href="https://github.com/wazenmai">I-Chun (Bronwin) Chen</a>
 
 ## Introduction
 [TODO] add arxiv link here and citation
@@ -199,9 +199,10 @@ Special thanks to Wen-Yi Hsiao for providing the code for skyline algorithm.
 If you find this useful, please cite our paper.
 
 ```
-@article{
-	title={{MidiBERT-Piano}: Large-scale Pre-training forSymbolic Music Understanding},
+@inproceedings{
+	title={{MidiBERT-Piano}: Large-scale Pre-training for Symbolic Music Understanding},
 	author={Yi-Hui Chou* and I-Chun Chen* and Chin-Jui Chang and Joann Ching, and Yi-Hsuan Yang},
+	booktitle = {Proc. Int. Soc. Music Information Retrieval Conf.},
 	year={2021},
 }
 ```
