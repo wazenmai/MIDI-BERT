@@ -38,9 +38,9 @@ result
 		└── model_best.ckpt
 ```
 
-2. please refer to <a href="#2-evaluation">evaluation</a>.  
+2. please refer to <a href="#2-evaluation">evaluation</a>, 
 
-, and you are free to go!  *(btw, no gpu is needed for evaluation)*
+ and you are free to go!  *(btw, no gpu is needed for evaluation)*
 
 
 ## Installation
@@ -200,7 +200,7 @@ If you find this useful, please cite our paper.
 
 ```
 @article{
-	title={MidiBERT-Piano: Large-scale Pre-training forSymbolic Music Understanding},
+	title={{MidiBERT-Piano}: Large-scale Pre-training forSymbolic Music Understanding},
 	author={Yi-Hui Chou* and I-Chun Chen* and Chin-Jui Chang and Joann Ching, and Yi-Hsuan Yang},
 	year={2021},
 }
