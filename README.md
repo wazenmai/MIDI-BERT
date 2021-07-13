@@ -6,9 +6,7 @@
 Authors: <a href="https://sophia1488.github.io">Yi-Hui (Sophia) Chou</a>, <a href="https://github.com/wazenmai">I-Chun (Bronwin) Chen</a>
 
 ## Introduction
-[TODO] add arxiv link here and citation
-
-This is the official repository for the paper, [MidiBERT-Piano: Large-scale Pre-training for Symbolic Music Understanding]().
+This is the official repository for the paper, [MidiBERT-Piano: Large-scale Pre-training for Symbolic Music Understanding](https://arxiv.org/pdf/2107.05223.pdf).
 
 With this repository, you can
 * pre-train a MidiBERT-Piano with your customized pre-trained dataset
@@ -61,7 +59,7 @@ You can also preprocess as below.
 
 ### 1. download dataset and preprocess
 
-* [Pop17K](https://github.com/YatingMusic/compound-word-transformer)
+* [Pop1K7](https://github.com/YatingMusic/compound-word-transformer)
 * [ASAP](https://github.com/fosfrancesco/asap-dataset)
   * Step 1: Download ASAP dataset from the link
   * Step 2: Use `Dataset/ASAP_song.pkl` to extract songs to `Dataset/ASAP`
