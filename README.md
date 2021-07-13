@@ -2,6 +2,11 @@
 <p align="center">
     <img src="fig/midibert.png" width="800"/>
     <br>
+    <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/wazenmai/MIDI-BERT?logoColor=blue" /></a>
+    <a href="http://arxiv.org/licenses/nonexclusive-distrib/1.0/"><img alt="ARXIV LICENSE" src="https://img.shields.io/badge/License-arxiv-lightgrey" /> </a>
+    <a href=""><img alt="STAR" src="https://img.shields.io/github/stars/wazenmai/MIDI-BERT"/> </a>
+    <a href="https://github.com/wazenmai/MIDI-BERT/issues"><img alt="ISSUE" src="https://img.shields.io/github/issues/wazenmai/MIDI-BERT" /></a>
+
 </p>
 Authors: <a href="https://sophia1488.github.io">Yi-Hui (Sophia) Chou</a>, <a href="https://github.com/wazenmai">I-Chun (Bronwin) Chen</a>
 
@@ -186,7 +191,7 @@ python3 cal_acc.py
 
 Since Pop909 contains *melody*, *bridge*, *accompaniment*, yet skyline cannot distinguish  between melody and bridge.
 
-There are 2 way to report its accuracy:
+There are 2 ways to report its accuracy:
 
 1. Consider *Bridge* as *Accompaniment*, attains 78.54% accuracy
 2. Consider *Bridge* as *Melody*, attains 79.51%
