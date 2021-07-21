@@ -123,7 +123,7 @@ For example,
 python3 main.py --name=default --dataset pop1k7 asap	
 ``` 
 
-Acknowledgement: [HuggingFace](https://github.com/huggingface/transformers)
+Acknowledgement: [HuggingFace](https://github.com/huggingface/transformers), [codertimo/BERT-pytorch](https://github.com/codertimo/BERT-pytorch)
 
 Special thanks to Chin-Jui Chang
 
