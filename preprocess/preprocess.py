@@ -277,9 +277,9 @@ def align_midi_beats(piece_dir):
   print(len(vocal_notes), len(bridge_notes), len(piano_notes))
   
   # recalculate bpm
-  if downbeat_idx not in range(1, 5):
-    print('error: downbeat_idx = {}'.format(downbeat_idx))
-    exit(1)
+  # change index 0 to 4
+  if downbeat_idx == 0:
+    downbeat_idx = 4
   
   first_beat_tick = (4-downbeat_idx) * DEFAULT_TICKS_PER_BEAT
   first_bpm = np.round( (60./(midi_beat_times[1]-midi_beat_times[0])), 2 )
