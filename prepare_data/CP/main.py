@@ -12,14 +12,15 @@ def get_args():
     parser.add_argument('-t', '--task', choices=['melody', 'velocity', 'composer', 'emotion'])
 
     ### path ###
-    parser.add_argument('--dict', default='../../dict/CP.pkl')
-    parser.add_argument('--dataset', choices=["pop909", "pop1k7", "ASAP", "pianist8", "emopia"], required=True)
+    parser.add_argument('--dict', type=str, default='../../dict/CP.pkl')
+    parser.add_argument('--dataset', type=str, choices=["pop909", "pop1k7", "ASAP", "pianist8", "emopia"])
+    parser.add_argument('--input_dir', type=str, default='')
 
     ### parameter ###
-    parser.add_argument('--max_len', default=512)
+    parser.add_argument('--max_len', type=int, default=512)
     
     ### output ###    
-    parser.add_argument('--dir', default="../../data/CP")
+    parser.add_argument('--output_dir', default="../../data/CP")
 
     args = parser.parse_args()
 
@@ -32,34 +33,51 @@ def get_args():
     elif args.task == 'emotion' and args.dataset != 'emopia':
         print('[error] emotion task is only supported for emopia dataset')
         exit(1)
+    elif args.dataset == None and args.input_dir == None:
+        print('[error] Please specify the input directory')
+        exit(1)
 
     return args
 
 
-def extract(files, args, model, mode):
-    print('number of {} files: {}'.format(mode, len(files)))  
-    segments, ans = model.prepare_data(files, args.task, int(args.max_len))
-    print('segment shape', segments.shape)
-    if args.dataset == 'pianist8':
-        output_file = args.dir + '/composer_cp_' + mode + '.npy'
-    elif args.dataset == 'emopia':
-        output_file = args.dir + '/' + args.dataset + '_cp_' + mode + '.npy'
-    else:
-        output_file = args.dir + '/' + args.dataset + '_' + mode + '.npy'
+def extract(files, args, model, mode=''):
+    '''
+    files: list of midi path
+    mode: 'train', 'valid', 'test', ''
+    '''
+    mode = f'_{mode}' if mode != '' else ''
 
+    print(f'number of {mode} files: {len(files)}') 
+
+    segments, ans = model.prepare_data(files, args.task, int(args.max_len))
+
+    print('segment shape', segments.shape)
+
+    if args.input_dir != '':
+        name = args.input_dir.split('/')[-1]
+        output_file = f'{args.output_dir}/{name}{mode}.npy'
+    elif args.dataset == 'pianist8':
+        output_file = f'{args.output_dir}/composer_cp{mode}.npy'
+    elif args.dataset == 'emopia':
+        output_file = f'{args.output_dir}/{args.dataset}_cp{mode}.npy'
+    else:
+        output_file = f'{args.output_dir}/{args.dataset}{mode}.npy'
+
+    print(output_file)
     np.save(output_file, segments)
 
     if args.task != None:
         print('ans shape', ans.shape)
         if args.task == 'melody' or args.task == 'velocity':
-            ans_file = args.dir + '/' + args.dataset + '_' + mode + '_' + args.task[:3] + 'ans.npy'   
+            ans_file = args.output_dir + '/' + args.dataset + '_' + mode + '_' + args.task[:3] + 'ans.npy'   
         elif args.task == 'composer' or args.task == 'emotion':
-            ans_file = args.dir + '/' + args.dataset + '_cp_' + mode + '_ans.npy'   
+            ans_file = args.output_dir + '/' + args.dataset + '_cp_' + mode + '_ans.npy'   
         np.save(ans_file, ans)
+
 
 def main(): 
     args = get_args()
-    pathlib.Path(args.dir).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     
     # initialize model
     model = CP(dict=args.dict)
@@ -80,11 +98,12 @@ def main():
         train_files = glob.glob('../../Dataset/emopia/train/*.mid')
         valid_files = glob.glob('../../Dataset/emopia/valid/*.mid')
         test_files = glob.glob('../../Dataset/emopia/test/*.mid')
+    elif args.input_dir:
+        files = glob.glob(f'{args.input_dir}/*.mid')
     else:
         print('not supported')
         exit(1)
 
-    print('number of files', len(files))
 
     if args.task == 'melody' or args.task == "velocity":
         # split to 8:1:1 for train, valid, test set
@@ -92,7 +111,6 @@ def main():
         train_files = files[: 2*test_len]
         valid_files = files[2*test_len : test_len]
         test_files = files[test_len :]
-        
         extract(train_files, args, model, 'train')
         extract(valid_files, args, model, 'valid')
         extract(test_files, args, model, 'test')
@@ -102,7 +120,7 @@ def main():
         extract(test_files, args, model, 'test')
     else:
         # in one single file
-        extract(files, args, model, 'all')
+        extract(files, args, model)
 
 if __name__ == '__main__':
     main()

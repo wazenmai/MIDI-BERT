@@ -53,7 +53,7 @@ class CP(object):
 
     def prepare_data(self, midi_paths, task, max_len):
 
-        if task == 'melody' or task == 'velocity':
+        if task == 'melody' or task == 'velocity' or task == None:
             # extract events
             all_events = []
             for path in midi_paths:

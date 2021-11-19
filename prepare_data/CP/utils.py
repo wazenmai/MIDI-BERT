@@ -4,7 +4,6 @@ import copy
 
 # parameters for input
 #DEFAULT_VELOCITY_BINS = np.linspace(0, 128, 32+1, dtype=np.int)
-#DEFAULT_VELOCITY_BINS = np.array([  0,  70,  86,  102, 128])
 DEFAULT_VELOCITY_BINS = np.array([ 0, 32, 48, 64, 80, 96, 128])
 DEFAULT_FRACTION = 16
 DEFAULT_DURATION_BINS = np.arange(60, 3841, 60, dtype=int)

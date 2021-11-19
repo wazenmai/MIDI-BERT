@@ -47,8 +47,8 @@ def extract(file, f):
         else:
             FP1 += 1
     
-    TN1 = len(melody) + len(bridge) - TP1 
-    FN1 = len(all_notes) - TP1 - FP1 - TN1
+    FN1 = len(melody) + len(bridge) - TP1 
+    TN1 = len(all_notes) - TP1 - FN1 - FP1
 
     for i in pred_m:
         if i.Type == 0:
@@ -57,22 +57,23 @@ def extract(file, f):
         else:
             FP2 += 1
     
-    TN2 = len(melody) - TP2
-    FN2 = len(all_notes) - TP2 - FP2 - TN2
+    FN2 = len(melody) - TP2
+    TN2 = len(all_notes) - TP2 - FP2 - FN2
 
-    print('accuracy (melody only):', (TP2+FN2)/(TP2+TN2+FP2+FN2))
-    print('accuracy (melody & bridge):', (TP1+FN1)/(TP1+TN1+FP1+FN1))
+    print('accuracy (melody only):', (TP2+TN2)/(TP2+TN2+FP2+FN2))
+    print('accuracy (melody & bridge):', (TP1+TN1)/(TP1+TN1+FP1+FN1))
+
     f.write('TN2:{}, TP2:{}, FN2:{}, FP2:{}\n'.format(TN2, TP2, FN2, FP2))
-    f.write('accuracy (melody only):' + str((TP2+FN2)/(TP2+TN2+FP2+FN2)) + '\n')
+    f.write('accuracy (melody only):' + str((TP2+TN2)/(TP2+TN2+FP2+FN2)) + '\n')
+
     f.write('TN1:{}, TP1:{}, FN1:{}, FP1:{}\n'.format(TN1, TP1, FN1, FP1))
-    f.write('accuracy (melody & bridge):' + str((TP1+FN1)/(TP1+TN1+FP1+FN1)) + '\n')
+    f.write('accuracy (melody & bridge):' + str((TP1+TN1)/(TP1+TN1+FP1+FN1)) + '\n')
     return TP1, TN1, FP1, FN1, TP2, TN2, FP2, FN2
 
 def main():
-    root_dir = '/home/yh1488/NAS-189/home/Dataset/pop909_aligned/'
-    files = glob.glob(root_dir+'*.mid')
     # use test set ONLY
-    files = files[-86:]
+    root_dir = '/home/yh1488/NAS-189/home/Dataset/pop909_aligned/test'
+    files = glob.glob(f'{root_dir}/*.mid')
     
     TP1, TN1, FP1, FN1, TP2, TN2, FP2, FN2 = 0,0,0,0,0,0,0,0
 
@@ -86,8 +87,9 @@ def main():
             TP1 += tp1; TN1 += tn1; FP1 += fp1; FN1 += fn1;
             TP2 += tp2; TN2 += tn2; FP2 += fp2; FN2 += fn2;
     
-        f.write('\navg accuracy (melody only):' + str((TP2+FN2)/(TP2+TN2+FP2+FN2)) + '\n')
-        f.write('avg accuracy (melody & bridge):' + str((TP1+FN1)/(TP1+TN1+FP1+FN1)) + '\n')
+        f.write('\navg accuracy (melody only):' + str((TP2+TN2)/(TP2+TN2+FP2+FN2)) + '\n')
+        f.write(f'(melody only) TP: {TP2}, FP: {FP2}, FN: {FN2}, TN:{TN2} \n')
+        f.write('avg accuracy (melody & bridge):' + str((TP1+TN1)/(TP1+TN1+FP1+FN1)) + '\n')
 
 
 if __name__ == '__main__':
