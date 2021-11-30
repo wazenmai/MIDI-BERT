@@ -25,10 +25,11 @@ All the datasets employed in this work are publicly available.
 If you'd like to reproduce the results (MidiBERT) shown in the paper, 
 ![image-20210710185007453](fig/result.png)
 
-1. please download the [checkpoints](https://drive.google.com/drive/folders/1ceIfC1UugZQHPgpEEMkdAF0VhZ1EeLl3?usp=sharing), and rename files like the following
+1. Please download the [checkpoints](https://drive.google.com/drive/folders/1ceIfC1UugZQHPgpEEMkdAF0VhZ1EeLl3?usp=sharing), and rename files like the following
 
+	(Note: we only provide checkpoints for models in CP representations)
 ```
-MidiBERT/{CP/remi}/
+MidiBERT/CP/
 result
 └── finetune
 	└── melody_default
@@ -41,7 +42,7 @@ result
 		└── model_best.ckpt
 ```
 
-2. please refer to <a href="#2-evaluation">evaluation</a>, 
+2. Please refer to <a href="#2-evaluation">evaluation</a>, 
 
  and you are free to go!  *(btw, no gpu is needed for evaluation)*
 
