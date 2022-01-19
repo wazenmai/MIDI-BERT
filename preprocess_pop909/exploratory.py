@@ -3,8 +3,7 @@ import os, pickle
 import matplotlib.pyplot as plt
 from collections import Counter
 
-#root_dir = 'POP909'
-root_dir = '/home/yh1488/NAS-189/home/Dataset/POP909'
+root_dir = 'Dataset/POP909'
 
 def read_info_file(fpath, tgt_cols):
     with open(fpath, 'r') as f:
@@ -49,7 +48,7 @@ if __name__ == '__main__':
                 print (pdir, '[error] 3-beat !!')
 
 
-    print ('qualified quad: {}; qualified triple: {}'.format(qualified_quad, qualified_triple))
+    print('qualified quad: {}; qualified triple: {}'.format(qualified_quad, qualified_triple))
     
     pickle.dump(
         qualified_pieces, 
