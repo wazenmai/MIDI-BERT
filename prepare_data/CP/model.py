@@ -102,7 +102,7 @@ class CP(object):
                         name = "Hisaishi"
                     if name == "Ryuici":
                         name = "Ryuichi"
-                events = self.extract_events(path)
+                events = self.extract_events(path, task)
                 words = []
                 for note_tuple in events:
                     nts = []
