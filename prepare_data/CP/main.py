@@ -9,7 +9,7 @@ from model import *
 def get_args():
     parser = argparse.ArgumentParser(description='')
     ### mode ###
-    parser.add_argument('-t', '--task', choices=['melody', 'velocity', 'composer', 'emotion'])
+    parser.add_argument('-t', '--task', default='', choices=['melody', 'velocity', 'composer', 'emotion'])
 
     ### path ###
     parser.add_argument('--dict', type=str, default='../../dict/CP.pkl')
@@ -34,7 +34,7 @@ def get_args():
         print('[error] emotion task is only supported for emopia dataset')
         exit(1)
     elif args.dataset == None and args.input_dir == None:
-        print('[error] Please specify the input directory')
+        print('[error] Please specify the input directory or dataset')
         exit(1)
 
     return args
@@ -63,11 +63,11 @@ def extract(files, args, model, mode=''):
     else:
         output_file = f'{args.output_dir}/{args.dataset}{mode}.npy'
 
-    print(output_file)
+#    print(f"save to {output_file}")
     np.save(output_file, segments)
 
     if args.task != None:
-        print('ans shape', ans.shape)
+        print(f'[{args.task}] answer shape', ans.shape)
         if args.task == 'melody' or args.task == 'velocity':
             ans_file = args.output_dir + '/' + args.dataset + '_' + mode + '_' + args.task[:3] + 'ans.npy'   
         elif args.task == 'composer' or args.task == 'emotion':
@@ -82,22 +82,15 @@ def main():
     # initialize model
     model = CP(dict=args.dict)
 
-    if args.dataset == 'pop909':
-        files = glob.glob('../../Dataset/pop909_aligned/*.mid')  
-    elif args.dataset == 'pop1k7':
+    if args.dataset == 'pop1k7':
         files = glob.glob('../../Dataset/pop1k7/*/*.mid')
     elif args.dataset == 'ASAP':
         files = pickle.load(open('../../Dataset/ASAP_song.pkl'))
-        for i, f in enumerate(files):
-            files[i] = '../../Dataset/ASAP/' + f
-    elif args.dataset == 'pianist8':
-        train_files = glob.glob('../../Dataset/pianist8/train/*.mid')
-        valid_files = glob.glob('../../Dataset/pianist8/valid/*.mid')
-        test_files = glob.glob('../../Dataset/pianist8/test/*.mid')
-    elif args.dataset == 'emopia':
-        train_files = glob.glob('../../Dataset/emopia/train/*.mid')
-        valid_files = glob.glob('../../Dataset/emopia/valid/*.mid')
-        test_files = glob.glob('../../Dataset/emopia/test/*.mid')
+        files = [f'../../Dataset/ASAP/{file}' for file in files]
+    elif args.dataset == 'pop909' or 'pianist8' or 'emopia':
+        train_files = glob.glob(f'../../Dataset/{args.dataset}/train/*.mid')
+        valid_files = glob.glob('../../Dataset/{args.dataset}/valid/*.mid')
+        test_files = glob.glob('../../Dataset/{args.dataset}/test/*.mid')
     elif args.input_dir:
         files = glob.glob(f'{args.input_dir}/*.mid')
     else:
@@ -105,16 +98,7 @@ def main():
         exit(1)
 
 
-    if args.task == 'melody' or args.task == "velocity":
-        # split to 8:1:1 for train, valid, test set
-        test_len = (-1) * int(len(files)*0.1)
-        train_files = files[: 2*test_len]
-        valid_files = files[2*test_len : test_len]
-        test_files = files[test_len :]
-        extract(train_files, args, model, 'train')
-        extract(valid_files, args, model, 'valid')
-        extract(test_files, args, model, 'test')
-    elif args.task == 'composer' or args.task == 'emotion':
+    if args.task == 'pop909' or 'pianist8' or 'emopia':
         extract(train_files, args, model, 'train')
         extract(valid_files, args, model, 'valid')
         extract(test_files, args, model, 'test')
