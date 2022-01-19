@@ -104,7 +104,7 @@ class REMI(object):
                         name = "Hisaishi"
                     if name == "Ryuici":
                         name = "Ryuichi"
-                events = self.extract_events(path)
+                events = self.extract_events(path, task)
                 words = []
                 for event in events:
                     e = '{}_{}'.format(event.name, event.value)
@@ -133,5 +133,7 @@ class REMI(object):
                 
                 all_words = all_words + slice_words
                 all_ys = all_ys + slice_ys
-            
+                
+            all_words = np.array(all_words)
+            all_ys = np.array(all_ys)
         return all_words, all_ys
