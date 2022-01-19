@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 DEFAULT_TICKS_PER_BEAT = 480
 DEFAULT_RESOLUTION = 120
 
-root_dir = 'Dataset/POP909'
-melody_out_dir = 'Dataset/pop909_aligned'
+root_dir = '../Dataset/POP909'
+melody_out_dir = '../Dataset/pop909_aligned'
 
 downbeat_records = []
 all_bpms = []
@@ -246,7 +246,7 @@ def dump_melody_midi(vocal_notes, bridge_notes, piano_notes, bpm_changes, midi_o
     midi_obj.dump(midi_out_path)
     return
 
-def align_midi_beats(piece_dir):
+def align_midi_beats(piece_dir, subfolder):
     audio_beat_path = os.path.join(piece_dir, 'beat_audio.txt')
     midi_beat_times = read_info_file(audio_beat_path, [0])[0]
     midi_beat_idx = read_info_file(audio_beat_path, [1])[1]
@@ -297,17 +297,32 @@ def align_midi_beats(piece_dir):
         bridge_notes,
         piano_notes,
         bpm_changes,
-        os.path.join(melody_out_dir, piece_dir.split('/')[-1] + '.mid')
+        os.path.join(melody_out_dir, subfolder, piece_dir.split('/')[-1] + '.mid')
     )
 
 
 if __name__ == '__main__':
-    pieces_dir = pickle.load( open('preprocess_pop909/qual_pieces.pkl', 'rb') )
-    os.makedirs(melody_out_dir, exist_ok=True)
+    pieces_dir = pickle.load(open('qual_pieces.pkl', 'rb'))
+    data_split = pickle.load(open('split.pkl','rb'))
+    train_data = set(data_split['train_data'])
+    valid_data = set(data_split['valid_data'])
+    test_data = set(data_split['test_data'])
+
+    os.makedirs(f'{melody_out_dir}/train', exist_ok=True)
+    os.makedirs(f'{melody_out_dir}/valid', exist_ok=True)
+    os.makedirs(f'{melody_out_dir}/test', exist_ok=True)
     
     for pdir in tqdm(pieces_dir):
         piece_dir = os.path.join(root_dir, pdir)
-        save_path = os.path.join(melody_out_dir, piece_dir.split('/')[-1] + '.mid')
-        # print ('>> {}, saved at {}'.format(pdir, save_path))
-        align_midi_beats(piece_dir)
+        mid = f'{pdir}.mid'
+        if mid in train_data:
+            subfolder = 'train'
+        elif mid in valid_data:
+            subfolder = 'valid'
+        elif mid in test_data:
+            subfolder = 'test'
+        else:
+            print(f'invalid midi {mid}')
+            exit(1)
+        align_midi_beats(piece_dir, subfolder)
     print(f"Preprocessed data saved at {melody_out_dir}")

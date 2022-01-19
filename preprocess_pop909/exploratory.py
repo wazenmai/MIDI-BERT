@@ -3,7 +3,7 @@ import os, pickle
 import matplotlib.pyplot as plt
 from collections import Counter
 
-root_dir = 'Dataset/POP909'
+root_dir = '../Dataset/POP909'
 
 def read_info_file(fpath, tgt_cols):
     with open(fpath, 'r') as f:
