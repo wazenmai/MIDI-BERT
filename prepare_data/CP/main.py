@@ -4,7 +4,7 @@ import pickle
 import pathlib
 import argparse
 import numpy as np
-from model import *
+from model_ver1 import *
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
@@ -44,35 +44,35 @@ def extract(files, args, model, mode=''):
     '''
     files: list of midi path
     mode: 'train', 'valid', 'test', ''
+    args.input_dir: '' or the directory to your custom data
+    args.output_dir: the directory to store the data (and answer data) in CP representation
     '''
-    mode = f'_{mode}' if mode != '' else ''
+    assert len(files)
 
-    print(f'number of {mode} files: {len(files)}') 
+    print(f'Number of {mode} files: {len(files)}') 
 
     segments, ans = model.prepare_data(files, args.task, int(args.max_len))
 
-    print('segment shape', segments.shape)
+    dataset = args.dataset if args.dataset != 'pianist8' else 'composer'
 
     if args.input_dir != '':
         name = args.input_dir.split('/')[-1]
-        output_file = f'{args.output_dir}/{name}{mode}.npy'
-    elif args.dataset == 'pianist8':
-        output_file = f'{args.output_dir}/composer_cp{mode}.npy'
-    elif args.dataset == 'emopia':
-        output_file = f'{args.output_dir}/{args.dataset}_cp{mode}.npy'
-    else:
-        output_file = f'{args.output_dir}/{args.dataset}{mode}.npy'
+        output_file = os.path.join(args.output_dir, f'{name}.npy')
+    elif dataset == 'composer' or dataset == 'emopia' or dataset == 'pop909':
+        output_file = os.path.join(args.output_dir, f'{dataset}_{mode}.npy')
+    elif dataset == 'pop1k7' or dataset == 'ASAP':
+        output_file = os.path.join(args.output_dir, f'{dataset}.npy')
 
-#    print(f"save to {output_file}")
     np.save(output_file, segments)
+    print(f'Data shape: {segments.shape}, saved at {output_file}')
 
-    if args.task != None:
-        print(f'[{args.task}] answer shape', ans.shape)
+    if args.task != '':
         if args.task == 'melody' or args.task == 'velocity':
-            ans_file = args.output_dir + '/' + args.dataset + '_' + mode + '_' + args.task[:3] + 'ans.npy'   
+            ans_file = os.path.join(args.output_dir, f'{dataset}_{mode}_{args.task[:3]}ans.npy')
         elif args.task == 'composer' or args.task == 'emotion':
-            ans_file = args.output_dir + '/' + args.dataset + '_cp_' + mode + '_ans.npy'   
+            ans_file = os.path.join(args.output_dir, f'{dataset}_{mode}_ans.npy')
         np.save(ans_file, ans)
+        print(f'Answer shape: {ans.shape}, saved at {ans_file}')
 
 
 def main(): 
@@ -82,23 +82,39 @@ def main():
     # initialize model
     model = CP(dict=args.dict)
 
-    if args.dataset == 'pop1k7':
-        files = glob.glob('../../Dataset/pop1k7/*/*.mid')
+    if args.dataset == 'pop909':
+        dataset = args.dataset
+    elif args.dataset == 'emopia':
+        dataset = 'EMOPIA_1.0'
+    elif args.dataset == 'pianist8':
+        dataset = 'joann8512-Pianist8-ab9f541'
+
+    if args.task != '':
+        train_files = glob.glob(f'../../Dataset/{dataset}/train/*.mid')
+        valid_files = glob.glob(f'../../Dataset/{dataset}/valid/*.mid')
+        test_files = glob.glob(f'../../Dataset/{dataset}/test/*.mid')
+
+    elif args.dataset == 'pianist8':
+        train_files = glob.glob(f'../../Dataset/{dataset}/train/*/*.mid')
+        valid_files = glob.glob(f'../../Dataset/{dataset}/valid/*/*.mid')
+        test_files = glob.glob(f'../../Dataset/{dataset}/test/*/*.mid')
+
+    elif args.dataset == 'pop1k7':
+        files = glob.glob('../../Dataset/dataset/midi_transcribed/*/*.midi')
+
     elif args.dataset == 'ASAP':
-        files = pickle.load(open('../../Dataset/ASAP_song.pkl'))
-        files = [f'../../Dataset/ASAP/{file}' for file in files]
-    elif args.dataset == 'pop909' or 'pianist8' or 'emopia':
-        train_files = glob.glob(f'../../Dataset/{args.dataset}/train/*.mid')
-        valid_files = glob.glob('../../Dataset/{args.dataset}/valid/*.mid')
-        test_files = glob.glob('../../Dataset/{args.dataset}/test/*.mid')
+        files = pickle.load(open('../../Dataset/ASAP_song.pkl', 'rb'))
+        files = [f'../../Dataset/asap-dataset/{file}' for file in files]
+
     elif args.input_dir:
         files = glob.glob(f'{args.input_dir}/*.mid')
+
     else:
         print('not supported')
         exit(1)
 
 
-    if args.task == 'pop909' or 'pianist8' or 'emopia':
+    if args.task != '':
         extract(train_files, args, model, 'train')
         extract(valid_files, args, model, 'valid')
         extract(test_files, args, model, 'test')
