@@ -3,8 +3,7 @@ import miditoolkit
 import copy
 
 # parameters for input
-#DEFAULT_VELOCITY_BINS = np.linspace(0, 128, 32+1, dtype=np.int)
-DEFAULT_VELOCITY_BINS = np.array([ 0, 32, 48, 64, 80, 96, 128])
+DEFAULT_VELOCITY_BINS = np.array([ 0, 32, 48, 64, 80, 96, 128])     # np.linspace(0, 128, 32+1, dtype=np.int)
 DEFAULT_FRACTION = 16
 DEFAULT_DURATION_BINS = np.arange(60, 3841, 60, dtype=int)
 DEFAULT_TEMPO_INTERVALS = [range(30, 90), range(90, 150), range(150, 210)]
@@ -59,6 +58,7 @@ def read_items(file_path):
             pitch=int(tempo.tempo),
             Type=-1))
     tempo_items.sort(key=lambda x: x.start)
+
     # expand to all beat
     max_tick = tempo_items[-1].start
     existing_ticks = {item.start: item.pitch for item in tempo_items}
@@ -97,7 +97,7 @@ class Event(object):
         return 'Event(name={}, time={}, value={}, text={}, Type={})'.format(
             self.name, self.time, self.value, self.text, self.Type)
 
-# item to event
+
 def item2event(groups, task):
     events = []
     n_downbeat = 0
@@ -109,66 +109,66 @@ def item2event(groups, task):
         new_bar = True
         
         for item in groups[i][1:-1]:
-            # position
+            if item.name != 'Note':
+                continue
+            note_tuple = []
+
+            # Bar
+            if new_bar:
+                BarValue = 'New' 
+                new_bar = False
+            else:
+                BarValue = "Continue"
+            note_tuple.append(Event(
+                name='Bar',
+                time=None, 
+                value=BarValue,
+                text='{}'.format(n_downbeat),
+                Type=-1))
+
+            # Position
             flags = np.linspace(bar_st, bar_et, DEFAULT_FRACTION, endpoint=False)
             index = np.argmin(abs(flags-item.start))
-            note_tuple = []
-            if item.name == 'Note':
-                # velocity
-                velocity_index = np.searchsorted(
-                    DEFAULT_VELOCITY_BINS, 
-                    item.velocity, 
-                    side='right') - 1
-                if new_bar:
-                    BarValue = 'New' 
-                    new_bar = False
-                else:
-                    BarValue = "Continue"
+            note_tuple.append(Event(
+                name='Position', 
+                time=item.start,
+                value='{}/{}'.format(index+1, DEFAULT_FRACTION),
+                text='{}'.format(item.start),
+                Type=-1))
+            
+            # Pitch
+            velocity_index = np.searchsorted(DEFAULT_VELOCITY_BINS, item.velocity, side='right') - 1
 
-                note_tuple.append(Event(
-                    name='Bar',
-                    time=None, 
-                    #value=None,
-                    value=BarValue,
-                    text='{}'.format(n_downbeat),
-                    Type=-1))
-                note_tuple.append(Event(
-                    name='Position', 
-                    time=item.start,
-                    value='{}/{}'.format(index+1, DEFAULT_FRACTION),
-                    text='{}'.format(item.start),
-                    Type=-1))
+            if task == 'melody':
+                pitchType = item.Type
+            elif task == 'velocity':
+                pitchType = velocity_index
+            else:
+                pitchType = -1
                 
-                if task == 'melody':
-                    pitchType = item.Type
-                elif task == 'velocity':
-                    pitchType = velocity_index
-                else:
-                    pitchType = -1
-                
-                # pitch
-                note_tuple.append(Event(
-                    name='Pitch',
-                    time=item.start, 
-                    value=item.pitch,
-                    text='{}'.format(item.pitch),
-                    Type=pitchType))
-                # duration
-                duration = item.end - item.start
-                index = np.argmin(abs(DEFAULT_DURATION_BINS-duration))
-                note_tuple.append(Event(
-                    name='Duration',
-                    time=item.start,
-                    value=index,
-                    text='{}/{}'.format(duration, DEFAULT_DURATION_BINS[index]),
-                    Type=-1))
+            note_tuple.append(Event(
+                name='Pitch',
+                time=item.start, 
+                value=item.pitch,
+                text='{}'.format(item.pitch),
+                Type=pitchType))
 
-                events.append(note_tuple)
+            # Duration
+            duration = item.end - item.start
+            index = np.argmin(abs(DEFAULT_DURATION_BINS-duration))
+            note_tuple.append(Event(
+                name='Duration',
+                time=item.start,
+                value=index,
+                text='{}/{}'.format(duration, DEFAULT_DURATION_BINS[index]),
+                Type=-1))
+
+            events.append(note_tuple)
+
     return events
 
-# quantize items
+
 def quantize_items(items, ticks=120):
-    # grid
     grids = np.arange(0, items[-1].start, ticks, dtype=int)
     # process
     for item in items:
@@ -178,7 +178,7 @@ def quantize_items(items, ticks=120):
         item.end += shift
     return items      
 
-# group items
+
 def group_items(items, max_time, ticks_per_bar=DEFAULT_RESOLUTION*4):
     items.sort(key=lambda x: x.start)
     downbeats = np.arange(0, max_time+ticks_per_bar, ticks_per_bar)
