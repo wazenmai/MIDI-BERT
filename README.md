@@ -63,25 +63,25 @@ All data in CP/REMI token are stored in ```data/CP``` & ```data/remi```, respect
 
 You can also preprocess as below.
 
-### 1. download dataset and preprocess
-
+### 1. Download Dataset and Preprocess
+Save the following dataset in `Dataset/`
 * [Pop1K7](https://github.com/YatingMusic/compound-word-transformer)
 * [ASAP](https://github.com/fosfrancesco/asap-dataset)
-  * Step 1: Download ASAP dataset from the link
-  * Step 2: Use `Dataset/ASAP_song.pkl` to extract songs to `Dataset/ASAP`
+  * Download ASAP dataset from the link
 * [POP909](https://github.com/music-x-lab/POP909-Dataset)
   * preprocess to have 865 pieces in qualified 4/4 time signature
-  * ```exploratory.py``` to get pieces qualified in 4/4 time signature and save at ```qual_pieces.pkl```
+  * ```cd preprocess_pop909```
+  * ```exploratory.py``` to get pieces qualified in 4/4 time signature and save them at ```qual_pieces.pkl```
   * ```preprocess.py``` to realign and preprocess
   * Special thanks to Shih-Lun (Sean) Wu
 * [Pianist8](https://zenodo.org/record/5089279)
   * Step 1: Download Pianist8 dataset from the link
-  * Step 2: Use `Dataset/pianist8_(mode).pkl` to extracts songs to `Dataset/pianist8/mode`
+  * Step 2: Run `python3 pianist8.py` to split data by `Dataset/pianist8_(mode).pkl`
 * [EMOPIA](https://annahung31.github.io/EMOPIA/)
   * Step 1: Download Emopia dataset from the link
-  * Step 2: Use `Dataset/emopia_(mode).pkl` to extracts songs to `Dataset/emopia/mode`
+  * Step 2: Run `python3 emopia.py` to split data by `Dataset/emopia_(mode).pkl`
 
-### 2. prepare dict
+### 2. Prepare Dictionary
 
 ```dict/make_dict.py``` customize the events & words you'd like to add.
 
@@ -91,20 +91,21 @@ In this paper, we only use *Bar*, *Position*, *Pitch*, *Duration*.  And we provi
 
 ```dict/remi.pkl```
 
-### 3. prepare CP & REMI
+### 3. Prepare CP & REMI
+Note that the CP & REMI tokens here only contain Bar, Position, Pitch, and Duration.
+Please look into the repos below if you prefer the original definition of CP & REMI tokens.
 
 ```./prepare_data/CP```
 
 * Run ```python3 main.py ```.  Please specify the dataset and whether you wanna prepare an answer array for the task (i.e. melody extraction, velocity prediction, composer classification and emotion classification).
 * For example, ```python3 main.py --dataset=pop909 --task=melody --dir=[DIR_TO_STORE_DATA]```
+* For custom dataset, run `python3 main.py --input_dir={your_input_directory}`, and the data in CP tokens will be saved at `../../data/CP/{your input directory name}.npy`.  Or you can specify the filename by adding `--name={filename}`.
 
 ```./prepare_data/remi/```
 
 * The same logic applies to preparing REMI data. 
 
 Acknowledgement: [CP repo](https://github.com/YatingMusic/compound-word-transformer), [remi repo](https://github.com/YatingMusic/remi/tree/6d407258fa5828600a5474354862353ef4e4e8ae)
-
-You may encode these midi files in different representations, the data split is in ***.
 
 ## B. Pre-train a MidiBERT-Piano
 
@@ -132,7 +133,7 @@ Special thanks to Chin-Jui Chang
 
 ```./MidiBERT/CP``` and ```./MidiBERT/remi```
 
-### 1. fine-tuning
+### 1. Fine-tuning
 
 * ```finetune.py```
 ```python
@@ -140,7 +141,7 @@ python3 finetune.py --task=melody --name=default
 ```
 A folder named ```CP_result/finetune/{name}/``` will be created, with checkpoint & log inside.
 
-### 2. evaluation
+### 2. Evaluation
 
 * ```eval.py```
 ```python

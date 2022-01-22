@@ -26,5 +26,5 @@ if __name__ == '__main__':
     os.makedirs(dest, exist_ok=True)
 
     move(train, 'train')
-#    move(valid, 'valid')
-#    move(test, 'test')
+    move(valid, 'valid')
+    move(test, 'test')
