@@ -4,7 +4,7 @@ import pickle
 import pathlib
 import argparse
 import numpy as np
-from model_ver1 import *
+from model import *
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
@@ -21,6 +21,7 @@ def get_args():
     
     ### output ###    
     parser.add_argument('--output_dir', default="../../data/CP")
+    parser.add_argument('--name', default="")   # will be saved as "{output_dir}/{name}.npy"
 
     args = parser.parse_args()
 
@@ -56,8 +57,9 @@ def extract(files, args, model, mode=''):
     dataset = args.dataset if args.dataset != 'pianist8' else 'composer'
 
     if args.input_dir != '':
-        name = args.input_dir.split('/')[-1]
-        output_file = os.path.join(args.output_dir, f'{name}.npy')
+        if args.name == '':
+            args.name = os.path.basename(os.path.normpath(args.input_dir))
+        output_file = os.path.join(args.output_dir, f'{args.name}.npy')
     elif dataset == 'composer' or dataset == 'emopia' or dataset == 'pop909':
         output_file = os.path.join(args.output_dir, f'{dataset}_{mode}.npy')
     elif dataset == 'pop1k7' or dataset == 'ASAP':
@@ -89,7 +91,7 @@ def main():
     elif args.dataset == 'pianist8':
         dataset = 'joann8512-Pianist8-ab9f541'
 
-    if args.task != '':
+    if args.dataset == 'pop909' or args.dataset == 'emopia':
         train_files = glob.glob(f'../../Dataset/{dataset}/train/*.mid')
         valid_files = glob.glob(f'../../Dataset/{dataset}/valid/*.mid')
         test_files = glob.glob(f'../../Dataset/{dataset}/test/*.mid')
@@ -114,7 +116,7 @@ def main():
         exit(1)
 
 
-    if args.task != '':
+    if args.dataset in {'pop909', 'emopia', 'pianist8'}:
         extract(train_files, args, model, 'train')
         extract(valid_files, args, model, 'valid')
         extract(test_files, args, model, 'test')
