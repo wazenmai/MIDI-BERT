@@ -44,51 +44,24 @@ def get_args():
     return args
 
 
-def load_data(dataset):
+def load_data(datasets):
     to_concat = []
-    
-    if 'pop909' in dataset:
-        root = '../../data/remi/pop909_'
-        X_train = np.load(root+'train.npy', allow_pickle=True)
-        X_val = np.load(root+'valid.npy', allow_pickle=True)
-        X_test = np.load(root+'test.npy', allow_pickle=True)
-        POP909 = np.concatenate((X_train, X_val, X_test), axis=0)
-        print('   POP909:', POP909.shape)
-        to_concat.append(POP909)
+    root = '../../data/remi'
 
-    if 'composer' in dataset:
-        composer_root = '../../data/remi/composer_remi_'
-        X_train = np.load(composer_root+'train.npy', allow_pickle=True)
-        X_val = np.load(composer_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(composer_root+'test.npy', allow_pickle=True)
-        composer = np.concatenate((X_train, X_val, X_test), axis=0)
-        print('   composer:', composer.shape)
-        to_concat.append(composer)
+    for dataset in datasets:
+        if dataset in {'pop909', 'composer', 'emopia'}:
+            X_train = np.load(os.path.join(root, f'{dataset}_train.npy'), allow_pickle=True)
+            X_valid = np.load(os.path.join(root, f'{dataset}_valid.npy'), allow_pickle=True)
+            X_test = np.load(os.path.join(root, f'{dataset}_test.npy'), allow_pickle=True)
+            data = np.concatenate((X_train, X_valid, X_test), axis=0)
+            
+        elif dataset == 'pop1k7' or dataset == 'ASAP':
+            data = np.load(os.path.join(root, f'{dataset}.npy'), allow_pickle=True)
 
-    if 'pop1k7' in dataset:
-        pop1k7_path = '../../data/remi/pop1k7.npy'
-        pop1k7 = np.load(pop1k7_path, allow_pickle=True)
-        print('   pop1k7:', pop1k7.shape)
-        to_concat.append(pop1k7)
+        print(f'   {dataset}: {data.shape}')
+        to_concat.append(data)
 
-    if 'ASAP' in dataset:
-        ASAP_path = '../../data/remi/ASAP_remi.npy'
-        ASAP = np.load(ASAP_path, allow_pickle=True)
-        print('   ASAP:', ASAP.shape)
-        to_concat.append(ASAP)
 
-    if 'emopia' in dataset:
-        emopia_root = '../../data/remi/emopia_'
-        path = emopia_root + 'train.npy'
-        emopia_train = np.load(path, allow_pickle=True)
-        path = emopia_root + 'valid.npy'
-        emopia_valid = np.load(path, allow_pickle=True)
-        path = emopia_root + 'test.npy'
-        emopia_test = np.load(path, allow_pickle=True)
-        emopia = np.concatenate((emopia_train, emopia_valid, emopia_test), axis=0)
-        print('   emopia:', emopia.shape)
-        to_concat.append(emopia)
-    
     training_data = np.vstack(to_concat)
     print('   > all training data:', training_data.shape)
     

@@ -20,14 +20,14 @@ def get_args():
     parser.add_argument('--name', type=str, default='MidiBert')
 
     ### pre-train dataset ###
-    parser.add_argument("--dataset", type=str, nargs='+', default=['pop909','composer', 'pop1k7', 'ASAP', 'emopia'])
+    parser.add_argument("--datasets", type=str, nargs='+', default=['pop909','composer', 'pop1k7', 'ASAP', 'emopia'])
     
     ### parameter setting ###
     parser.add_argument('--num_workers', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=12)
     parser.add_argument('--mask_percent', type=float, default=0.15, help="Up to `valid_seq_len * target_max_percent` tokens will be masked out for prediction")
     parser.add_argument('--max_seq_len', type=int, default=512, help='all sequences are padded to `max_seq_len`')
-    parser.add_argument('--hs', type=int, default=768)
+    parser.add_argument('--hs', type=int, default=768)      # hidden state
     parser.add_argument('--epochs', type=int, default=500, help='number of training epochs')
     parser.add_argument('--lr', type=float, default=2e-5, help='initial learning rate')
     
@@ -40,48 +40,24 @@ def get_args():
     return args
 
 
-def load_data(dataset):
+def load_data(datasets):
     to_concat = []
-    
-    if 'pop909' in dataset:
-        root = '../../data/CP/pop909_'
-        X_train = np.load(root+'train.npy', allow_pickle=True)
-        X_val = np.load(root+'valid.npy', allow_pickle=True)
-        X_test = np.load(root+'test.npy', allow_pickle=True)
-        POP909 = np.concatenate((X_train, X_val, X_test), axis=0)
-        print('   POP909:', POP909.shape)
-        to_concat.append(POP909)
+    root = '../../data/CP'
 
-    if 'composer' in dataset:
-        composer_root = '../../data/CP/composer_cp_'
-        composer_train = np.load(composer_root+'train.npy', allow_pickle=True)
-        composer_valid = np.load(composer_root+'valid.npy', allow_pickle=True)
-        composer_test = np.load(composer_root+'test.npy', allow_pickle=True)
-        composer = np.concatenate((composer_train, composer_valid, composer_test), axis=0)
-        print('   Composer:', composer.shape)
-        to_concat.append(composer)
+    for dataset in datasets:
+        if dataset in {'pop909', 'composer', 'emopia'}:
+            X_train = np.load(os.path.join(root, f'{dataset}_train.npy'), allow_pickle=True)
+            X_valid = np.load(os.path.join(root, f'{dataset}_valid.npy'), allow_pickle=True)
+            X_test = np.load(os.path.join(root, f'{dataset}_test.npy'), allow_pickle=True)
+            data = np.concatenate((X_train, X_valid, X_test), axis=0)
+            
+        elif dataset == 'pop1k7' or dataset == 'ASAP':
+            data = np.load(os.path.join(root, f'{dataset}.npy'), allow_pickle=True)
 
-    if 'pop1k7' in dataset:
-        pop1k7_path = '../../data/CP/pop1k7.npy'
-        pop1k7 = np.load(pop1k7_path, allow_pickle=True)
-        print('   pop1k7:', pop1k7.shape)
-        to_concat.append(pop1k7)
+        print(f'   {dataset}: {data.shape}')
+        to_concat.append(data)
 
-    if 'ASAP' in dataset:
-        ASAP_path = '../../data/CP/ASAP_CP.npy'
-        ASAP = np.load(ASAP_path, allow_pickle=True)
-        print('   ASAP:', ASAP.shape)
-        to_concat.append(ASAP)
 
-    if 'emopia' in dataset:
-        emopia_root = '../../data/CP/emopia_'
-        X_train = np.load(emopia_root+'train.npy', allow_pickle=True)
-        X_val = np.load(emopia_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(emopia_root+'test.npy', allow_pickle=True)
-        emopia = np.concatenate((X_train, X_val, X_test), axis=0)
-        print('   emopia:', emopia.shape)
-        to_concat.append(emopia)
-    
     training_data = np.vstack(to_concat)
     print('   > all training data:', training_data.shape)
     
@@ -102,8 +78,8 @@ def main():
     with open(args.dict_file, 'rb') as f:
         e2w, w2e = pickle.load(f)
 
-    print("\nLoading Dataset", args.dataset) 
-    X_train, X_val = load_data(set(args.dataset))
+    print("\nLoading Dataset", args.datasets) 
+    X_train, X_val = load_data(args.datasets)
     
     trainset = MidiDataset(X=X_train)
     validset = MidiDataset(X=X_val) 

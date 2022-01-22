@@ -119,11 +119,11 @@ def main():
     # Load testing data
     inputs = args.input
     if args.task == "composer":
-        X_test = torch.tensor(np.load(inputs + "/composer_cp_test.npy"))
-        y_test = torch.tensor(np.load(inputs + "/composer_cp_test_ans.npy"))
+        X_test = torch.tensor(np.load(inputs + "/composer_test.npy"))
+        y_test = torch.tensor(np.load(inputs + "/composer_test_ans.npy"))
     elif args.task == "emotion":
-        X_test = torch.tensor(np.load(inputs + "/emopia_cp_test.npy"))
-        y_test = torch.tensor(np.load(inputs + "/emopia_cp_test_ans.npy"))
+        X_test = torch.tensor(np.load(inputs + "/emopia_test.npy"))
+        y_test = torch.tensor(np.load(inputs + "/emopia_test_ans.npy"))
     length = len(X_test)
     _X, _y = X_test.to(device, dtype=torch.long), y_test.to(device, dtype=torch.long)
 

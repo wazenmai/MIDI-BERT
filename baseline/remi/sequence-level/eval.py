@@ -114,11 +114,11 @@ def main():
     print('Loading testing data...')
     inputs = args.input
     if args.task == "composer":
-        X_test = torch.tensor(np.load(inputs + "/composer_cp_test.npy"))
-        y_test = torch.tensor(np.load(inputs + "/composer_cp_test_ans.npy"))
+        X_test = torch.tensor(np.load(inputs + "/composer_test.npy"))
+        y_test = torch.tensor(np.load(inputs + "/composer_test_ans.npy"))
     elif args.task == "emotion":
-        X_test = torch.tensor(np.load(inputs + "/emopia_cp_test.npy"))
-        y_test = torch.tensor(np.load(inputs + "/emopia_cp_test_ans.npy"))
+        X_test = torch.tensor(np.load(inputs + "/emopia_test.npy"))
+        y_test = torch.tensor(np.load(inputs + "/emopia_test_ans.npy"))
     testset = PopDataset(X=X_test, y=y_test)
     test_loader = DataLoader(testset, batch_size = 1, shuffle = True, drop_last = True)
     

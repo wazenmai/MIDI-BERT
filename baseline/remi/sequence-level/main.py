@@ -51,22 +51,21 @@ def get_args():
 
 def load_data(task):
     if task == "composer":
-        X_train = torch.tensor(np.load(inputs + "/composer_remi_train.npy", allow_pickle=True), dtype=torch.long)
-        X_val = torch.tensor(np.load(inputs + "/composer_remi_valid.npy", allow_pickle=True), dtype=torch.long)
-        y_train = torch.tensor(np.load(inputs+ "/composer_remi_train_ans.npy", allow_pickle=True), dtype=torch.long)
-        y_val = torch.tensor(np.load(inputs+ "/composer_remi_valid_ans.npy", allow_pickle=True), dtype=torch.long)
+        X_train = torch.tensor(np.load(inputs + "/composer_train.npy", allow_pickle=True), dtype=torch.long)
+        X_val = torch.tensor(np.load(inputs + "/composer_valid.npy", allow_pickle=True), dtype=torch.long)
+        y_train = torch.tensor(np.load(inputs+ "/composer_train_ans.npy", allow_pickle=True), dtype=torch.long)
+        y_val = torch.tensor(np.load(inputs+ "/composer_valid_ans.npy", allow_pickle=True), dtype=torch.long)
     elif task == "emotion":
-        X_train = torch.tensor(np.load(inputs + "/emopia_remi_train.npy", allow_pickle=True), dtype=torch.long)
-        X_val = torch.tensor(np.load(inputs + "/emopia_remi_valid.npy", allow_pickle=True), dtype=torch.long)
-        y_train = torch.tensor(np.load(inputs+ "/emopia_remi_train_ans.npy", allow_pickle=True), dtype=torch.long)
-        y_val = torch.tensor(np.load(inputs+ "/emopia_remi_valid_ans.npy", allow_pickle=True), dtype=torch.long)
+        X_train = torch.tensor(np.load(inputs + "/emopia_train.npy", allow_pickle=True), dtype=torch.long)
+        X_val = torch.tensor(np.load(inputs + "/emopia_valid.npy", allow_pickle=True), dtype=torch.long)
+        y_train = torch.tensor(np.load(inputs+ "/emopia_train_ans.npy", allow_pickle=True), dtype=torch.long)
+        y_val = torch.tensor(np.load(inputs+ "/emopia_valid_ans.npy", allow_pickle=True), dtype=torch.long)
 
 def main():
     args = get_args()
     cuda_num = args.cuda 
     cuda_str = 'cuda:'+str(cuda_num)
     device = torch.device(cuda_str if torch.cuda.is_available() else 'cpu')
-    # device = 'cpu'
 
     inputs = args.input
     dict_name = args.dict

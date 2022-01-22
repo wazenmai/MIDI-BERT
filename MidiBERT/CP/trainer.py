@@ -92,7 +92,6 @@ class BERTTrainer:
 
             # avoid attend to pad word
             attn_mask = (input_ids[:, :, 0] != self.midibert.bar_pad_word).float().to(self.device)   # (batch, seq_len)
-            #input_ids = input_ids.to(self.device)
             
             y = self.model.forward(input_ids, attn_mask)
 
@@ -102,7 +101,6 @@ class BERTTrainer:
                 output = np.argmax(y[i].cpu().detach().numpy(), axis=-1)
                 outputs.append(output)
             outputs = np.stack(outputs, axis=-1)    
-#            outputs = outputs.astype(float)
             outputs = torch.from_numpy(outputs).to(self.device)   # (batch, seq_len)
 
             # accuracy
@@ -137,7 +135,6 @@ class BERTTrainer:
             accs = list(map(float, all_acc))
             sys.stdout.write('Loss: {:06f} | loss: {:03f}, {:03f}, {:03f}, {:03f} | acc: {:03f}, {:03f}, {:03f}, {:03f} \r'.format(
                 total_loss, *losses, *accs)) 
-                #train_iter, num_batches, total_loss, losses[0], losses[1], losses[2], losses[3], accs[0], accs[1], accs[2], accs[3]))
 
             losses = list(map(float, losses))
             total_losses += total_loss.item()

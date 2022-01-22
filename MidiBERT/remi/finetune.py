@@ -55,40 +55,32 @@ def get_args():
 
 
 def load_data(dataset, task):
-    if dataset == 'pop909':
-        root = '../../data/remi/pop909_'
-        X_train = np.load(root+'train.npy', allow_pickle=True)
-        X_val = np.load(root+'valid.npy', allow_pickle=True)
-        X_test = np.load(root+'test.npy', allow_pickle=True)
-        y_train = np.load(root+'train_'+task[:3]+'ans.npy', allow_pickle=True)
-        y_val = np.load(root+'valid_'+task[:3]+'ans.npy', allow_pickle=True)
-        y_test = np.load(root+'test_'+task[:3]+'ans.npy', allow_pickle=True)
+    data_root = '../../data/remi'
 
-    elif dataset == 'composer':
-        composer_root = '../../data/remi/composer_remi_'
-        X_train = np.load(composer_root+'train.npy', allow_pickle=True)
-        X_val = np.load(composer_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(composer_root+'test.npy', allow_pickle=True)
-        y_train = np.load(composer_root+'train_ans.npy', allow_pickle=True)
-        y_val = np.load(composer_root+'valid_ans.npy', allow_pickle=True)
-        y_test = np.load(composer_root+'test_ans.npy', allow_pickle=True)
+    if dataset == 'emotion':
+        dataset = 'emopia'
 
-    elif dataset == 'emopia':
-        emopia_root = '../../data/remi/emopia_'
-        X_train = np.load(emopia_root+'train.npy', allow_pickle=True)
-        X_val = np.load(emopia_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(emopia_root+'test.npy', allow_pickle=True)
-        y_train = np.load(emopia_root+'train_ans.npy', allow_pickle=True)
-        y_val = np.load(emopia_root+'valid_ans.npy', allow_pickle=True)
-        y_test = np.load(emopia_root+'test_ans.npy', allow_pickle=True)
-    else:
-        print('dataset {} not supported'.format(dataset))
+    if dataset not in ['pop909', 'composer', 'emopia']:
+        print(f'Dataset {dataset} not supported')
         exit(1)
-    
-    print('X_train: {}, X_valid: {}, X_test: {}'.format(
-        X_train.shape, X_val.shape, X_test.shape))
-    print('y_train: {}, y_valid: {}, y_test: {}'.format(
-        y_train.shape, y_val.shape, y_test.shape))
+        
+    X_train = np.load(os.path.join(data_root, f'{dataset}_train.npy'), allow_pickle=True)
+    X_val = np.load(os.path.join(data_root, f'{dataset}_valid.npy'), allow_pickle=True)
+    X_test = np.load(os.path.join(data_root, f'{dataset}_test.npy'), allow_pickle=True)
+
+    print('X_train: {}, X_valid: {}, X_test: {}'.format(X_train.shape, X_val.shape, X_test.shape))
+
+    if dataset == 'pop909':
+        y_train = np.load(os.path.join(data_root, f'{dataset}_train_{task[:3]}ans.npy'), allow_pickle=True)
+        y_val = np.load(os.path.join(data_root, f'{dataset}_valid_{task[:3]}ans.npy'), allow_pickle=True)
+        y_test = np.load(os.path.join(data_root, f'{dataset}_test_{task[:3]}ans.npy'), allow_pickle=True)
+    else:
+        y_train = np.load(os.path.join(data_root, f'{dataset}_train_ans.npy'), allow_pickle=True)
+        y_val = np.load(os.path.join(data_root, f'{dataset}_valid_ans.npy'), allow_pickle=True)
+        y_test = np.load(os.path.join(data_root, f'{dataset}_test_ans.npy'), allow_pickle=True)
+
+    print('y_train: {}, y_valid: {}, y_test: {}'.format(y_train.shape, y_val.shape, y_test.shape))
+
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 

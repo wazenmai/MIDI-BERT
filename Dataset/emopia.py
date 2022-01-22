@@ -8,9 +8,7 @@ def move(files, subset):
     for f in files:
         piece = f.split('/')[-1]
         src = os.path.join(root, 'midis', piece)
-        if os.path.exists(src):
-            print(src)
-            shutil.move(src, os.path.join(root, subset, piece))
+        shutil.move(src, os.path.join(root, subset, piece))
 
 
 if __name__ == '__main__':

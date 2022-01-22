@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import pickle
 import os
+import random
 
 from torch.utils.data import DataLoader
 import torch
@@ -11,6 +12,7 @@ from model import MidiBert
 from finetune_trainer import FinetuneTrainer
 from finetune_dataset import FinetuneDataset
 
+from matplotlib import pyplot as plt
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
@@ -20,7 +22,7 @@ def get_args():
     ### path setup ###
     parser.add_argument('--dict_file', type=str, default='../../dict/CP.pkl')
     parser.add_argument('--name', type=str, default='')
-    parser.add_argument('--ckpt', default='result/pretrain/default/model_best.ckpt')
+    parser.add_argument('--ckpt', default='result/pretrain/test/model_best.ckpt')
 
     ### parameter setting ###
     parser.add_argument('--num_workers', type=int, default=5)
@@ -53,44 +55,44 @@ def get_args():
 
 def load_data(dataset, task):
     data_root = '../../data/CP/'
-    if dataset == 'pop909':
-        root = data_root + 'pop909_'
-        X_train = np.load(root+'train.npy', allow_pickle=True)
-        X_val = np.load(root+'valid.npy', allow_pickle=True)
-        X_test = np.load(root+'test.npy', allow_pickle=True)
-        y_train = np.load(root+'train_'+task[:3]+'ans.npy', allow_pickle=True)
-        y_val = np.load(root+'valid_'+task[:3]+'ans.npy', allow_pickle=True)
-        y_test = np.load(root+'test_'+task[:3]+'ans.npy', allow_pickle=True)
 
-    elif dataset == 'composer':
-        composer_root = data_root + 'composer_cp_'
-        X_train = np.load(composer_root+'train.npy', allow_pickle=True)
-        X_val = np.load(composer_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(composer_root+'test.npy', allow_pickle=True)
-        y_train = np.load(composer_root+'train_ans.npy', allow_pickle=True)
-        y_val = np.load(composer_root+'valid_ans.npy', allow_pickle=True)
-        y_test = np.load(composer_root+'test_ans.npy', allow_pickle=True)
+    if dataset == 'emotion':
+        dataset = 'emopia'
 
-    elif dataset == 'emopia':
-        emopia_root = data_root + 'emopia_'
-        X_train = np.load(emopia_root+'train.npy', allow_pickle=True)
-        X_val = np.load(emopia_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(emopia_root+'test.npy', allow_pickle=True)
-        y_train = np.load(emopia_root+'train_ans.npy', allow_pickle=True)
-        y_val = np.load(emopia_root+'valid_ans.npy', allow_pickle=True)
-        y_test = np.load(emopia_root+'test_ans.npy', allow_pickle=True)
-    else:
-        print('dataset {} not supported'.format(dataset))
+    if dataset not in ['pop909', 'composer', 'emopia']:
+        print(f'Dataset {dataset} not supported')
         exit(1)
-    
-    print('X_train: {}, X_valid: {}, X_test: {}'.format(
-        X_train.shape, X_val.shape, X_test.shape))
-    print('y_train: {}, y_valid: {}, y_test: {}'.format(
-        y_train.shape, y_val.shape, y_test.shape))
+        
+    X_train = np.load(os.path.join(data_root, f'{dataset}_train.npy'), allow_pickle=True)
+    X_val = np.load(os.path.join(data_root, f'{dataset}_valid.npy'), allow_pickle=True)
+    X_test = np.load(os.path.join(data_root, f'{dataset}_test.npy'), allow_pickle=True)
+
+    print('X_train: {}, X_valid: {}, X_test: {}'.format(X_train.shape, X_val.shape, X_test.shape))
+
+    if dataset == 'pop909':
+        y_train = np.load(os.path.join(data_root, f'{dataset}_train_{task[:3]}ans.npy'), allow_pickle=True)
+        y_val = np.load(os.path.join(data_root, f'{dataset}_valid_{task[:3]}ans.npy'), allow_pickle=True)
+        y_test = np.load(os.path.join(data_root, f'{dataset}_test_{task[:3]}ans.npy'), allow_pickle=True)
+    else:
+        y_train = np.load(os.path.join(data_root, f'{dataset}_train_ans.npy'), allow_pickle=True)
+        y_val = np.load(os.path.join(data_root, f'{dataset}_valid_ans.npy'), allow_pickle=True)
+        y_test = np.load(os.path.join(data_root, f'{dataset}_test_ans.npy'), allow_pickle=True)
+
+    print('y_train: {}, y_valid: {}, y_test: {}'.format(y_train.shape, y_val.shape, y_test.shape))
+
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 
 def main():
+    # set seed
+    seed = 2021
+    torch.manual_seed(seed)             # cpu
+    torch.cuda.manual_seed(seed)        # current gpu
+    torch.cuda.manual_seed_all(seed)    # all gpu
+    np.random.seed(seed)
+    random.seed(seed)
+
+    # argument
     args = get_args()
 
     print("Loading Dictionary")
@@ -149,6 +151,7 @@ def main():
     best_acc, best_epoch = 0, 0
     bad_cnt = 0
 
+#    train_accs, valid_accs = [], []
     with open(os.path.join(save_dir, 'log'), 'a') as outfile:
         outfile.write("Loading pre-trained model from " + best_mdl.split('/')[-1] + '\n')
         for epoch in range(args.epochs):
@@ -167,6 +170,8 @@ def main():
             print('epoch: {}/{} | Train Loss: {} | Train acc: {} | Valid Loss: {} | Valid acc: {} | Test loss: {} | Test acc: {}'.format(
                 epoch+1, args.epochs, train_loss, train_acc, valid_loss, valid_acc, test_loss, test_acc))
 
+#            train_accs.append(train_acc)
+#            valid_accs.append(valid_acc)
             trainer.save_checkpoint(epoch, train_acc, valid_acc, 
                                     valid_loss, train_loss, is_best, filename)
 
@@ -177,6 +182,16 @@ def main():
             if bad_cnt > 3:
                 print('valid acc not improving for 3 epochs')
                 break
+
+    # draw figure valid_acc & train_acc
+    '''plt.figure()
+    plt.plot(train_accs)
+    plt.plot(valid_accs)
+    plt.title(f'{args.task} task accuracy (w/o pre-training)')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.legend(['train','valid'], loc='upper left')
+    plt.savefig(f'acc_{args.task}_scratch.jpg')'''
 
 if __name__ == '__main__':
     main()

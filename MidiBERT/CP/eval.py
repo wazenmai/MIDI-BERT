@@ -65,40 +65,31 @@ def get_args():
 
 def load_data(dataset, task):
     data_root = '../../data/CP/'
-    if dataset == 'pop909':
-        root = data_root + 'pop909_'
-        X_train = np.load(root+'train.npy', allow_pickle=True)
-        X_val = np.load(root+'valid.npy', allow_pickle=True)
-        X_test = np.load(root+'test.npy', allow_pickle=True)
-        y_train = np.load(root+'train_'+task[:3]+'ans.npy', allow_pickle=True)
-        y_val = np.load(root+'valid_'+task[:3]+'ans.npy', allow_pickle=True)
-        y_test = np.load(root+'test_'+task[:3]+'ans.npy', allow_pickle=True)
 
-    elif dataset == 'composer':
-        composer_root = data_root + 'composer_cp_'
-        X_train = np.load(composer_root+'train.npy', allow_pickle=True)
-        X_val = np.load(composer_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(composer_root+'test.npy', allow_pickle=True)
-        y_train = np.load(composer_root+'train_ans.npy', allow_pickle=True)
-        y_val = np.load(composer_root+'valid_ans.npy', allow_pickle=True)
-        y_test = np.load(composer_root+'test_ans.npy', allow_pickle=True)
+    if dataset == 'emotion':
+        dataset = 'emopia'
 
-    elif dataset == 'emotion':
-        emopia_root = data_root + 'emopia_'
-        X_train = np.load(emopia_root+'train.npy', allow_pickle=True)
-        X_val = np.load(emopia_root+'valid.npy', allow_pickle=True)
-        X_test = np.load(emopia_root+'test.npy', allow_pickle=True)
-        y_train = np.load(emopia_root+'train_ans.npy', allow_pickle=True)
-        y_val = np.load(emopia_root+'valid_ans.npy', allow_pickle=True)
-        y_test = np.load(emopia_root+'test_ans.npy', allow_pickle=True)
-    else:
+    if dataset not in ['pop909', 'composer', 'emopia']:
         print('dataset {} not supported'.format(dataset))
         exit(1)
-    
-    print('X_train: {}, X_valid: {}, X_test: {}'.format(
-        X_train.shape, X_val.shape, X_test.shape))
-    print('y_train: {}, y_valid: {}, y_test: {}'.format(
-        y_train.shape, y_val.shape, y_test.shape))
+        
+    X_train = np.load(os.path.join(data_root, f'{dataset}_train.npy'), allow_pickle=True)
+    X_val = np.load(os.path.join(data_root, f'{dataset}_valid.npy'), allow_pickle=True)
+    X_test = np.load(os.path.join(data_root, f'{dataset}_test.npy'), allow_pickle=True)
+
+    print('X_train: {}, X_valid: {}, X_test: {}'.format(X_train.shape, X_val.shape, X_test.shape))
+
+    if dataset == 'pop909':
+        y_train = np.load(os.path.join(data_root, f'{dataset}_train_{task[:3]}ans.npy'), allow_pickle=True)
+        y_val = np.load(os.path.join(data_root, f'{dataset}_valid_{task[:3]}ans.npy'), allow_pickle=True)
+        y_test = np.load(os.path.join(data_root, f'{dataset}_test_{task[:3]}ans.npy'), allow_pickle=True)
+    else:
+        y_train = np.load(os.path.join(data_root, f'{dataset}_train_ans.npy'), allow_pickle=True)
+        y_val = np.load(os.path.join(data_root, f'{dataset}_valid_ans.npy'), allow_pickle=True)
+        y_test = np.load(os.path.join(data_root, f'{dataset}_test_ans.npy'), allow_pickle=True)
+
+    print('y_train: {}, y_valid: {}, y_test: {}'.format(y_train.shape, y_val.shape, y_test.shape))
+
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 
@@ -124,7 +115,7 @@ def conf_mat(_y, output, task):
     
     _title = 'BERT (CP): ' + task + ' task'
     
-    save_cm_fig(cm, classes=target_names, normalize=True,
+    save_cm_fig(cm, classes=target_names, normalize=False,
                 title=_title, seq=seq)
 
 
@@ -170,7 +161,15 @@ def main():
     best_mdl = args.ckpt 
     checkpoint = torch.load(best_mdl, map_location='cpu')
     model.load_state_dict(checkpoint['state_dict'])
-    
+
+    # remove module
+    #from collections import OrderedDict
+    #new_state_dict = OrderedDict()
+    #for k, v in checkpoint['state_dict'].items():
+    #    name = k[7:]
+    #    new_state_dict[name] = v
+    #model.load_state_dict(new_state_dict)
+
     index_layer = int(args.index_layer)-13
     print("\nCreating Finetune Trainer using index layer", index_layer)
     trainer = FinetuneTrainer(midibert, train_loader, valid_loader, test_loader, index_layer, args.lr, args.class_num,

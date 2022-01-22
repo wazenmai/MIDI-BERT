@@ -85,15 +85,15 @@ def main():
 
     print("\nloading data...")
     if args.task == "composer":
-        X_train = torch.tensor(np.load(inputs + "/composer_cp_train.npy", allow_pickle=True), dtype=torch.long)
-        X_val = torch.tensor(np.load(inputs + "/composer_cp_valid.npy", allow_pickle=True), dtype=torch.long)
-        y_train = torch.tensor(np.load(inputs+ "/composer_cp_train_ans.npy", allow_pickle=True), dtype=torch.long)
-        y_val = torch.tensor(np.load(inputs+ "/composer_cp_valid_ans.npy", allow_pickle=True), dtype=torch.long)
+        X_train = torch.tensor(np.load(inputs + "/composer_train.npy", allow_pickle=True), dtype=torch.long)
+        X_val = torch.tensor(np.load(inputs + "/composer_valid.npy", allow_pickle=True), dtype=torch.long)
+        y_train = torch.tensor(np.load(inputs+ "/composer_train_ans.npy", allow_pickle=True), dtype=torch.long)
+        y_val = torch.tensor(np.load(inputs+ "/composer_valid_ans.npy", allow_pickle=True), dtype=torch.long)
     elif args.task == "emotion":
-        X_train = torch.tensor(np.load(inputs + "/emopia_cp_train.npy", allow_pickle=True), dtype=torch.long)
-        X_val = torch.tensor(np.load(inputs + "/emopia_cp_valid.npy", allow_pickle=True), dtype=torch.long)
-        y_train = torch.tensor(np.load(inputs+ "/emopia_cp_train_ans.npy", allow_pickle=True), dtype=torch.long)
-        y_val = torch.tensor(np.load(inputs+ "/emopia_cp_valid_ans.npy", allow_pickle=True), dtype=torch.long)
+        X_train = torch.tensor(np.load(inputs + "/emopia_train.npy", allow_pickle=True), dtype=torch.long)
+        X_val = torch.tensor(np.load(inputs + "/emopia_valid.npy", allow_pickle=True), dtype=torch.long)
+        y_train = torch.tensor(np.load(inputs+ "/emopia_train_ans.npy", allow_pickle=True), dtype=torch.long)
+        y_val = torch.tensor(np.load(inputs+ "/emopia_valid_ans.npy", allow_pickle=True), dtype=torch.long)
     trainset = PopDataset(X=X_train, y=y_train)
     validset = PopDataset(X=X_val, y=y_val)
     train_loader = DataLoader(trainset, batch_size = args.train_batch, shuffle = True)

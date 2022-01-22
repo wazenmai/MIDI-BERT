@@ -10,13 +10,10 @@ def save_cm_fig(cm, classes, normalize, title, seq):
     if normalize:
         cm = cm.astype('float')*100/cm.sum(axis=1)[:,None]
    
-    print(cm)
+#    print(cm)
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title(title)
-#    plt.colorbar()
     tick_marks = np.arange(len(classes))
-#    plt.xticks([])
-#    plt.yticks([])
     plt.xticks(tick_marks, classes, fontsize=20)
     plt.yticks(tick_marks, classes, fontsize=20)
 
@@ -30,5 +27,5 @@ def save_cm_fig(cm, classes, normalize, title, seq):
     plt.ylabel('true', fontsize=18)
     plt.tight_layout()
     
-    plt.savefig('cm_'+title.split()[2]+'.jpg')
+    plt.savefig(f'cm_{title.split()[2]}.jpg')
     return

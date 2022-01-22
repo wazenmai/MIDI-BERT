@@ -40,8 +40,6 @@ class MLM(nn.Module):
         # convert embeddings back to logits for prediction
         ys = []
         for i, etype in enumerate(self.e2w):
-            pred = self.proj[i](y)
-            ys.append(pred)           # (batch_size, seq_len, dict_size)
-            #ys.append(self.proj[i](y))           # (batch_size, seq_len, dict_size)
+            ys.append(self.proj[i](y))           # (batch_size, seq_len, dict_size)
         return ys
     
