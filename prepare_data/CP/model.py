@@ -31,6 +31,8 @@ class CP(object):
 
     def extract_events(self, input_path, task):
         note_items, tempo_items = utils.read_items(input_path)
+        if len(note_items) == 0:   # if the midi contains nothing
+            return None
         note_items = utils.quantize_items(note_items)
         max_time = note_items[-1].end
         items = tempo_items + note_items
@@ -55,7 +57,9 @@ class CP(object):
         for path in tqdm(midi_paths):
             # extract events
             events = self.extract_events(path, task)
-
+            if not events:  # if midi contains nothing
+                print(f'skip {path} because it is empty')
+                continue
             # events to words
             words, ys = [], []
             for note_tuple in events:
