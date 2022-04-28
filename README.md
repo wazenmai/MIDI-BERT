@@ -30,16 +30,15 @@ If you'd like to reproduce the results (MidiBERT) shown in the paper,
 
 	(Note: we only provide checkpoints for models in CP representations)
 ```
-MidiBERT/CP/
-result
-└── finetune
-	└── melody_default
+result/
+└── finetune/
+	└── melody_default/
 		└── model_best.ckpt
-	└── velocity_default
+	└── velocity_default/
 		└── model_best.ckpt
-	└── composer_default
+	└── composer_default/
 		└── model_best.ckpt
-	└── emotion_default
+	└── emotion_default/
 		└── model_best.ckpt
 ```
 
