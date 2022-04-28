@@ -43,8 +43,10 @@ result/
 ```
 
 2. Run `./scripts/eval.sh`
- Or refer to Readme in MidiBERT folder for more details. 
- *btw, no gpu is needed for evaluation*
+
+	Or refer to Readme in MidiBERT folder for more details. 
+ 
+	*No gpu is needed for evaluation*
 
 ### For musicians who want to test melody extraction
 Edit `scripts/melody_extraction.sh` and modify `song_path` to your midi path.
@@ -77,7 +79,7 @@ Please see `scripts` folder, which includes bash file for
 You may need to change the folder/file name or any config settings you prefer.
 
 
-## Repo Structure```
+## Repo Structure
 ```
 Data/
 └── Dataset/       
