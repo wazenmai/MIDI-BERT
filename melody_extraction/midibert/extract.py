@@ -1,9 +1,12 @@
 """
 [ Melody Extraction ]
 Given path to input midi file, save the predicted melody midi file. 
-Please note that the model is trained on pop909 dataset (which contains 3 classes: melody, bridge, accompaniment), so there are 2 interpretations: view `bridge` as `melody` or view it as `accompaniment`.
-You could choose the mode -- `bridge` is viewed as `melody` by default.
-Also, the sequence is zero-padded so that the shape (length) is the same, but it won't affect the results, as zero-padded tokens will be excluded in post-processing.
+Please note that the model is trained on pop909 dataset (containing 3 classes: melody, bridge, accompaniment), 
+so there are 2 interpretations: view `bridge` as `melody` or view it as `accompaniment`.
+You could choose the mode - `bridge` is viewed as `melody` by default.
+
+Also, the sequence is zero-padded so that the shape (length) is the same, but it won't affect the results, 
+as zero-padded tokens will be excluded in post-processing.
 """
 
 import argparse
@@ -234,8 +237,10 @@ def events2midi(events, output_path, prompt_path=None):
         for st, bpm in tempos:
             tempo_changes.append(miditoolkit.midi.containers.TempoChange(bpm, st))
         midi.tempo_changes = tempo_changes
-    # write
+    
+    # write  
     midi.dump(output_path)
+    print(f"predicted melody midi file is saved at {output_path}")
 
     return 
 
