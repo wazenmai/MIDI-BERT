@@ -54,6 +54,13 @@ The midi file to predicted melody will be saved at the root folder.
 ```
 ./scripts/melody_extraction.sh
 ```
+#### Windows Users
+```
+# modify this line (export PYTHONPATH='.') to the following
+set PYTHONPATH='.'
+# print the environment variable to make sure it's working
+echo %PYTHONPATH%
+```
 I've experimented this on Adele hello (piano cover), and I think it's good.  
 But for non-pop music like Mozart sonata, I feel like the model is pretty confused.  This is expected.  As the training data is POP909 Dataset, the model knows very little about classical music.  
 
