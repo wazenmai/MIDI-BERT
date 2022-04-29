@@ -26,8 +26,8 @@ from transformers import BertConfig
 
 from melody_extraction.midibert.midi2CP import CP
 from melody_extraction.midibert.utils import DEFAULT_VELOCITY_BINS, DEFAULT_FRACTION, DEFAULT_DURATION_BINS, DEFAULT_TEMPO_INTERVALS, DEFAULT_RESOLUTION
-from MidiBERT.CP.model import MidiBert
-from MidiBERT.CP.finetune_model import TokenClassification
+from MidiBERT.model import MidiBert
+from MidiBERT.finetune_model import TokenClassification
 
 
 def boolean_string(s):
