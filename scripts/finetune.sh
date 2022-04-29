@@ -1,14 +1,14 @@
 export PYTHONPATH="."
 
-# melody
-python3 MidiBERT/finetune.py --task=melody --name=melody_default
+# melody, its output folder name will be {task}_{name}
+python3 MidiBERT/finetune.py --task=melody --name=default
 
 # velocity
-python3 MidiBERT/finetune.py --task=velociy --name=velocity_default
+python3 MidiBERT/finetune.py --task=velociy --name=default
 
 # composer
-python3 MidiBERT/finetune.py --task=composer --name=composer_default
+python3 MidiBERT/finetune.py --task=composer --name=default
 
 # emotion
-python3 MidiBERT/finetune.py --task=emotion --name=emotion_default
+python3 MidiBERT/finetune.py --task=emotion --name=default
 
