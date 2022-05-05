@@ -80,7 +80,7 @@ Please see `scripts` folder, which includes bash file for
 * prepare data
 * pretrain
 * finetune
-* eval
+* evaluation
 * melody extraction
 
 You may need to change the folder/file name or any config settings you prefer.
@@ -114,7 +114,7 @@ MidiBERT/
 For more details on 
 * data preparation, please go to `data_creation` and follow Readme
 * MidiBERT pretraining, finetuning, evaluation, please go to `MidiBERT` and follow Readme
-* skyline, please go to `melody_extraction/data_creation` and follow Readme
+* skyline, please go to `melody_extraction/skyline` and follow Readme
 
 Note that Baseline (LSTM) and code in remi versions are removed for cleaness.  But you could find them in `main` branch.
 
