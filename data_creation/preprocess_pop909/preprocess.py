@@ -14,7 +14,7 @@ DEFAULT_TICKS_PER_BEAT = 480
 DEFAULT_RESOLUTION = 120
 
 root_dir = '../../Data/Dataset/POP909'
-melody_out_dir = '../../Data/Dataset/pop909'
+melody_out_dir = '../../Data/Dataset/pop909_processed'
 
 downbeat_records = []
 all_bpms = []
