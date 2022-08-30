@@ -89,7 +89,7 @@ def main():
     model = CP(dict=args.dict)
 
     if args.dataset == 'pop909':
-        dataset = args.dataset
+        dataset = 'pop909_processed'
     elif args.dataset == 'emopia':
         dataset = 'EMOPIA_1.0'
     elif args.dataset == 'pianist8':
