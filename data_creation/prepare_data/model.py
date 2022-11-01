@@ -26,7 +26,7 @@ class CP(object):
     def __init__(self, dict):
         # load dictionary
         self.event2word, self.word2event = pickle.load(open(dict, 'rb'))
-        # pad word: ['Bar <PAD>', 'Position <PAD>', 'Pitch <PAD>', 'Duration <PAD>']
+        # pad word: ['Bar <PAD>', 'Position <PAD>', 'Pitch <PAD>', 'Velocity <PAD>', 'Duration <PAD>', 'Tempo <PAD>']
         self.pad_word = [self.event2word[etype]['%s <PAD>' % etype] for etype in self.event2word]
 
     def extract_events(self, input_path, task):

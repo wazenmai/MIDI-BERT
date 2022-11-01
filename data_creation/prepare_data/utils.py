@@ -3,10 +3,11 @@ import miditoolkit
 import copy
 
 # parameters for input
-DEFAULT_VELOCITY_BINS = np.array([ 0, 32, 48, 64, 80, 96, 128])     # np.linspace(0, 128, 32+1, dtype=np.int)
+LABEL_VELOCITY_BINS = np.array([ 0, 32, 48, 64, 80, 96, 128])     # np.linspace(0, 128, 64+1, dtype=np.int)
+DEFAULT_VELOCITY_BINS = np.linspace(0,  128, 64+1, dtype=np.int)
 DEFAULT_FRACTION = 16
 DEFAULT_DURATION_BINS = np.arange(60, 3841, 60, dtype=int)
-DEFAULT_TEMPO_INTERVALS = [range(30, 90), range(90, 150), range(150, 210)]
+DEFAULT_TEMPO_BINS = np.linspace(32, 224, 64+1, dtype=int)
 
 # parameters for output
 DEFAULT_RESOLUTION = 480
@@ -101,17 +102,19 @@ class Event(object):
 def item2event(groups, task):
     events = []
     n_downbeat = 0
+    assert groups[0][1].name == "Tempo"
+    tempo = groups[0][1].pitch
+    
     for i in range(len(groups)):
-        if 'Note' not in [item.name for item in groups[i][1:-1]]:
-            continue
         bar_st, bar_et = groups[i][0], groups[i][-1]
         n_downbeat += 1
         new_bar = True
         
         for item in groups[i][1:-1]:
-            if item.name != 'Note':
-                continue
             note_tuple = []
+            if item.name == "Tempo":
+                tempo = item.pitch
+                continue
 
             # Bar
             if new_bar:
@@ -137,12 +140,12 @@ def item2event(groups, task):
                 Type=-1))
             
             # Pitch
-            velocity_index = np.searchsorted(DEFAULT_VELOCITY_BINS, item.velocity, side='right') - 1
-
+            velocity_label = np.searchsorted(LABEL_VELOCITY_BINS, item.velocity, side='right') - 1
+            # store task label in pitchType
             if task == 'melody':
                 pitchType = item.Type
             elif task == 'velocity':
-                pitchType = velocity_index
+                pitchType = velocity_label
             else:
                 pitchType = -1
                 
@@ -152,6 +155,15 @@ def item2event(groups, task):
                 value=item.pitch,
                 text='{}'.format(item.pitch),
                 Type=pitchType))
+
+            # Velocity (interval = 2)
+            velocity_ind = DEFAULT_VELOCITY_BINS[np.argmin(abs(DEFAULT_VELOCITY_BINS-item.velocity))]
+            note_tuple.append(Event(
+                name='Velocity',
+                time=item.start, 
+                value=velocity_ind,
+                text='{}'.format(velocity_ind),
+                Type=-1))
 
             # Duration
             duration = item.end - item.start
@@ -163,6 +175,15 @@ def item2event(groups, task):
                 text='{}/{}'.format(duration, DEFAULT_DURATION_BINS[index]),
                 Type=-1))
 
+            # Tempo
+            tempo_grid = DEFAULT_TEMPO_BINS[np.argmin(abs(DEFAULT_TEMPO_BINS-tempo))]
+            note_tuple.append(Event(
+                name='Tempo',
+                time=item.start, 
+                value=tempo_grid,
+                text='{}'.format(tempo_grid),
+                Type=-1))
+            
             events.append(note_tuple)
 
     return events
