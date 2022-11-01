@@ -1,7 +1,7 @@
 import pickle
 
-event2word = {'Bar': {}, 'Position': {}, 'Pitch': {}, 'Duration': {}}
-word2event = {'Bar': {}, 'Position': {}, 'Pitch': {}, 'Duration': {}}
+event2word = {'Bar': {}, 'Position': {}, 'Pitch': {}, 'Velocity': {}, 'Duration': {}, 'Tempo': {}}
+word2event = {'Bar': {}, 'Position': {}, 'Pitch': {}, 'Velocity': {}, 'Duration': {}, 'Tempo': {}}
 
 def special_tok(cnt, cls):
     '''event2word[cls][cls+' <SOS>'] = cnt
@@ -50,6 +50,16 @@ for i in range(22, 108):
 
 special_tok(cnt, cls)
 
+# Velocity
+# DEFAULT_VELOCITY_BINS = np.linspace(0,  128, 64+1, dtype=np.int)
+cnt, cls = 0, 'Velocity'
+for i in range(0, 130, 2):
+    event2word[cls][f'Velocity {i}'] = cnt
+    word2event[cls][cnt] = f'Velocity {i}'
+    cnt += 1
+
+special_tok(cnt, cls)
+
 # Note Duration
 cnt, cls = 0, 'Duration'
 for i in range(64):
@@ -59,10 +69,20 @@ for i in range(64):
 
 special_tok(cnt, cls)
 
+# Tempo
+# DEFAULT_BPM_BINS = np.linspace(32, 224, 64+1, dtype=np.int)
+cnt, cls = 0, 'Tempo'
+for i in range(32, 227, 3):
+    event2word[cls][f'Tempo {i}'] = cnt
+    word2event[cls][cnt] = f'Tempo {i}'
+    cnt += 1
+
+special_tok(cnt, cls)
+
+
 print(event2word)
 print(word2event)
 t = (event2word, word2event)
 
 with open('CP.pkl', 'wb') as f:
     pickle.dump(t, f)
-
