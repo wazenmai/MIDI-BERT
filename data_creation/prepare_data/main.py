@@ -7,7 +7,6 @@ import argparse
 import numpy as np
 from data_creation.prepare_data.model import *
 
-
 def get_args():
     parser = argparse.ArgumentParser(description='')
     ### mode ###
@@ -94,6 +93,9 @@ def main():
         dataset = 'EMOPIA_1.0'
     elif args.dataset == 'pianist8':
         dataset = 'joann8512-Pianist8-ab9f541'
+    elif args.dataset == 'ASAP':
+        dataset = 'asap_dataset'
+        
 
     if args.dataset == 'pop909' or args.dataset == 'emopia':
         train_files = glob.glob(f'Data/Dataset/{dataset}/train/*.mid')
@@ -110,7 +112,7 @@ def main():
 
     elif args.dataset == 'ASAP':
         files = pickle.load(open('Data/Dataset/ASAP_song.pkl', 'rb'))
-        files = [f'Dataset/asap-dataset/{file}' for file in files]
+        files = [f'Dataset/{dataset}/{file}' for file in files]
 
     elif args.input_dir:
         files = glob.glob(f'{args.input_dir}/*.mid')

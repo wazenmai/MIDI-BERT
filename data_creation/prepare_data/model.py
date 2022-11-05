@@ -65,6 +65,11 @@ class CP(object):
             for note_tuple in events:
                 nts, to_class = [], -1
                 for e in note_tuple:
+                    # avoid the pitch out of the defined dictionary
+                    if (e.name == 'Pitch' and e.value < 22):
+                        e.value = 22
+                    if (e.name == 'Pitch' and e.value >= 108):
+                        e.value = 107
                     e_text = '{} {}'.format(e.name, e.value)
                     nts.append(self.event2word[e.name][e_text])
                     if e.name == 'Pitch':
