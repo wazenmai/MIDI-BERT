@@ -188,6 +188,77 @@ def item2event(groups, task):
 
     return events
 
+def item2event_remi(groups, task):
+    events = []
+    n_downbeat = 0
+    assert groups[0][1].name == 'Tempo'
+
+    for i in range(len(groups)):
+        if 'Note' not in [item.name for item in groups[i][1:-1]]:
+            continue
+
+        bar_st, bar_et = groups[i][0], groups[i][-1]
+        n_downbeat += 1
+        
+        events.append(Event(
+            name='Bar',
+            time=None, 
+            value=None,
+            text='{}'.format(n_downbeat),
+            Type=-1))
+        
+        for item in groups[i][1:-1]:
+            #position
+            flags = np.linspace(bar_st, bar_et, DEFAULT_FRACTION, endpoint=False)
+            index = np.argmin(abs(flags-item.start))
+            events.append(Event(
+                name='Position',
+                time=item.start,
+                value='{}/{}'.format(index+1, DEFAULT_FRACTION),
+                text='{}'.format(item.start),
+                Type=-1))
+            if item.name == 'Note':
+                # for store task label in pitchType for token-level classification
+                velocity_label = np.searchsorted(LABEL_VELOCITY_BINS, item.velocity, side='right') - 1
+                if task == 'melody':
+                    pitchType = item.Type
+                elif task == 'velocity':
+                    pitchType = velocity_label
+                else:
+                    pitchType = -1
+                events.append(Event(
+                    name='Pitch',
+                    time=item.start, 
+                    value=item.pitch,
+                    text='{}'.format(item.pitch),
+                    Type=pitchType))
+                
+                velocity_ind = DEFAULT_VELOCITY_BINS[np.argmin(abs(DEFAULT_VELOCITY_BINS-item.velocity))]
+                events.append(Event(
+                    name='Velocity',
+                    time=item.start, 
+                    value=velocity_ind,
+                    text='{}'.format(velocity_ind),
+                    Type=-1))
+
+                duration = item.end - item.start
+                index = np.argmin(abs(DEFAULT_DURATION_BINS-duration))
+                events.append(Event(
+                    name='Duration',
+                    time=item.start,
+                    value=index,
+                    text='{}/{}'.format(duration, DEFAULT_DURATION_BINS[index]),
+                    Type=-1))
+            elif item.name == 'Tempo':
+                tempo = item.pitch
+                tempo_grid = DEFAULT_TEMPO_BINS[np.argmin(abs(DEFAULT_TEMPO_BINS-tempo))]
+                events.append(Event(
+                    name='Tempo',
+                    time=item.start, 
+                    value=tempo_grid,
+                    text='{}'.format(tempo_grid),
+                    Type=-1))
+    return events
 
 def quantize_items(items, ticks=120):
     grids = np.arange(0, items[-1].start, ticks, dtype=int)
