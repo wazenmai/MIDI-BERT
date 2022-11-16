@@ -140,20 +140,13 @@ class REMI(object):
     def prepare_data(self, midi_paths, task, max_len):
         print("task: ", task)
         if task == "melody" or task == "velocity":
-            # extract events
-            all_events = []
+            all_words, all_ys = [], []
             for path in midi_paths:
+                print("path: ", path)
                 events = self.extract_events(path, task)
-                all_events.append(events)
-            # event to word
-            all_words = []
-            all_ys = []
-            for events in all_events:
                 words, ys = [], []
                 for event in events:
-                    print("name: ". event.name)
                     e = '{} {}'.format(event.name, event.value)
-                    #print(e)
                     if e in self.event2word:
                         words.append(self.event2word[e])
                         ys.append(event.Type + 1) 
@@ -161,7 +154,7 @@ class REMI(object):
                         # OOV
                         if event.name == 'Velocity':
                             # replace with max velocity based on our training data
-                            words.append(self.event2word[' Velocity 0'])
+                            words.append(self.event2word['Velocity 0'])
                             ys.append(0)
                         else:
                             # something is wrong
@@ -170,15 +163,13 @@ class REMI(object):
         
                 # slice to chunks so that max_len = 512
                 slice_words, slice_ys = [], []
-                max_len = 512
                 for i in range(0, len(words), max_len):
                     slice_words.append(words[i:i+max_len])
                     slice_ys.append(ys[i:i+max_len])
                 
                 # padding
-                if len(slice_words[-1])<512:
+                if len(slice_words[-1]) < max_len:
                     slice_words[-1] = self.padding(slice_words[-1], max_len, ans=False)
-                if len(slice_ys[-1])<512:
                     slice_ys[-1] = self.padding(slice_ys[-1], max_len, ans=True)
                 
                 all_words = all_words + slice_words

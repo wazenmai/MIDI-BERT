@@ -5,7 +5,8 @@ import pickle
 import pathlib
 import argparse
 import numpy as np
-from data_creation.prepare_data.model import *
+
+from model import *
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
@@ -23,7 +24,7 @@ def get_args():
     parser.add_argument('--max_len', type=int, default=512)
     
     ### output ###    
-    parser.add_argument('--output_dir', default="Data/remi_data/tmp")
+    parser.add_argument('--output_dir', default="../../Data/remi_data/tmp")
     parser.add_argument('--name', default="")   # will be saved as "{output_dir}/{name}.npy"
 
     args = parser.parse_args()
@@ -101,7 +102,13 @@ def main():
         dataset = 'asap_dataset'
         
 
-    if args.dataset == 'pop909' or args.dataset == 'emopia':
+    if args.dataset == 'pop909':
+        files = pickle.load(open("../preprocess_pop909/split.pkl", "rb"))
+        train_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["train_data"]]
+        valid_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["valid_data"]]
+        test_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["test_data"]]
+
+    elif args.dataset == 'emopia':
         train_files = glob.glob(f'Data/Dataset/{dataset}/train/*.mid')
         valid_files = glob.glob(f'Data/Dataset/{dataset}/valid/*.mid')
         test_files = glob.glob(f'Data/Dataset/{dataset}/test/*.mid')
