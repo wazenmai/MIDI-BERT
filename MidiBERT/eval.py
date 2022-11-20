@@ -26,12 +26,14 @@ from MidiBERT.finetune_model import TokenClassification, SequenceClassification
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
+    ### representation ###
+    parser.add_argument('--repr', type=str, choices=['CP', 'remi'], required=True) 
 
     ### mode ###
     parser.add_argument('--task', choices=['melody', 'velocity','composer', 'emotion'], required=True)
     
     ### path setup ###
-    parser.add_argument('--dict_file', type=str, default='data_creation/prepare_data/dict/CP.pkl')
+    parser.add_argument('--dict_dir', type=str, default='data_creation/prepare_data/dict')
     parser.add_argument('--ckpt', type=str, default='')
 
     ### parameter setting ###
@@ -45,11 +47,11 @@ def get_args():
     
     ### cuda ###
     parser.add_argument('--cpu', action="store_true")  # default: false
-    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1,2,3], help="CUDA device ids")
+    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1], help="CUDA device ids")
 
     args = parser.parse_args()
 
-    root = 'result/finetune/'
+    root = f'MidiBERT/result/finetune_{args.repr}/'
 
     if args.task == 'melody':
         args.class_num = 4
@@ -67,8 +69,8 @@ def get_args():
     return args
 
 
-def load_data(dataset, task):
-    data_root = 'Data/CP_data'
+def load_data(dataset, task, rep):
+    data_root = f'Data/{rep}_data'
 
     if dataset == 'emotion':
         dataset = 'emopia'
@@ -105,7 +107,7 @@ def conf_mat(_y, output, task, outdir):
         target_names = ['pp','p','mp','mf','f','ff']
         seq = False
     elif task == 'composer':
-        target_names = ['M', 'C', 'E','H','W','J','S','Y']
+        target_names = ['C','Y','H','E','J','S','M','W']
         seq = True
     elif task == 'emotion':
         target_names = ['HAHV', 'HALV', 'LALV', 'LAHV']
@@ -119,15 +121,17 @@ def conf_mat(_y, output, task, outdir):
     
     _title = 'BERT (CP): ' + task + ' task'
     
-    save_cm_fig(cm, classes=target_names, normalize=False,
+    save_cm_fig(cm, classes=target_names, normalize=True,
                 title=_title, outdir=outdir, seq=seq)
 
 
 def main():
     args = get_args()
+    rep = args.repr
+    print('-'*50, rep, '-'*50)
 
     print("Loading Dictionary")
-    with open(args.dict_file, 'rb') as f:
+    with open(f'{args.dict_dir}/{rep}.pkl', 'rb') as f:
         e2w, w2e = pickle.load(f)
 
     print("\nBuilding BERT model")
@@ -147,7 +151,7 @@ def main():
         model = SequenceClassification(midibert, args.class_num, args.hs)
         seq_class = True
         
-    X_train, X_val, X_test, y_train, y_val, y_test = load_data(dataset, args.task)
+    X_train, X_val, X_test, y_train, y_val, y_test = load_data(dataset, args.task, rep)
     
     trainset = FinetuneDataset(X=X_train, y=y_train)
     validset = FinetuneDataset(X=X_val, y=y_val) 
