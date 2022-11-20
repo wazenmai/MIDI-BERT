@@ -6,7 +6,7 @@ import pathlib
 import argparse
 import numpy as np
 
-from model import *
+from data_creation.prepare_data.model import *
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
@@ -15,7 +15,8 @@ def get_args():
     parser.add_argument('--mode', choices=['cp', 'remi'], required=True)
 
     ### path ###
-    parser.add_argument('--dict', type=str, default='./dict/remi.pkl')
+    parser.add_argument('--dict_dir', type=str, default='data_creation/prepare_data/dict')
+    parser.add_argument('--dict', type=str, default='')
     parser.add_argument('--dataset', type=str, choices=["pop909", "pop1k7", "ASAP", "pianist8", "emopia"])
     parser.add_argument('--input_dir', type=str, default='')
     parser.add_argument('--input_file', type=str, default='')
@@ -24,7 +25,7 @@ def get_args():
     parser.add_argument('--max_len', type=int, default=512)
     
     ### output ###    
-    parser.add_argument('--output_dir', default="../../Data/remi_data/tmp")
+    parser.add_argument('--output_dir', default="")
     parser.add_argument('--name', default="")   # will be saved as "{output_dir}/{name}.npy"
 
     args = parser.parse_args()
@@ -41,6 +42,12 @@ def get_args():
     elif args.dataset == None and args.input_dir == None and args.input_file == None:
         print('[error] Please specify the input directory or dataset')
         exit(1)
+
+    if args.dict == '':
+        args.dict = f'{args.dict_dir}/{args.mode}.pkl'
+
+    if args.output_dir == '':
+        args.output_dir = "Data/{args.mode}_data/tmp"
 
     return args
 
@@ -103,7 +110,7 @@ def main():
         
 
     if args.dataset == 'pop909':
-        files = pickle.load(open("../preprocess_pop909/split.pkl", "rb"))
+        files = pickle.load(open("data_creation/preprocess_pop909/split.pkl", "rb"))
         train_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["train_data"]]
         valid_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["valid_data"]]
         test_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["test_data"]]
