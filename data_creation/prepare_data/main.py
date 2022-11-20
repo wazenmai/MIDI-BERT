@@ -5,15 +5,17 @@ import pickle
 import pathlib
 import argparse
 import numpy as np
-from data_creation.prepare_data.model import *
+
+from model import *
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
     ### mode ###
-    parser.add_argument('-t', '--task', default='', choices=['melody', 'velocity', 'composer', 'emotion'])
+    parser.add_argument('--task', default='', choices=['melody', 'velocity', 'composer', 'emotion'])
+    parser.add_argument('--mode', choices=['cp', 'remi'], required=True)
 
     ### path ###
-    parser.add_argument('--dict', type=str, default='data_creation/prepare_data/dict/CP.pkl')
+    parser.add_argument('--dict', type=str, default='./dict/remi.pkl')
     parser.add_argument('--dataset', type=str, choices=["pop909", "pop1k7", "ASAP", "pianist8", "emopia"])
     parser.add_argument('--input_dir', type=str, default='')
     parser.add_argument('--input_file', type=str, default='')
@@ -22,7 +24,7 @@ def get_args():
     parser.add_argument('--max_len', type=int, default=512)
     
     ### output ###    
-    parser.add_argument('--output_dir', default="Data/CP_data/tmp")
+    parser.add_argument('--output_dir', default="../../Data/remi_data/tmp")
     parser.add_argument('--name', default="")   # will be saved as "{output_dir}/{name}.npy"
 
     args = parser.parse_args()
@@ -85,7 +87,10 @@ def main():
     pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     
     # initialize model
-    model = CP(dict=args.dict)
+    if (args.mode == 'cp'):
+        model = CP(dict=args.dict)
+    else:
+        model = REMI(dict=args.dict)
 
     if args.dataset == 'pop909':
         dataset = 'pop909_processed'
@@ -97,7 +102,13 @@ def main():
         dataset = 'asap_dataset'
         
 
-    if args.dataset == 'pop909' or args.dataset == 'emopia':
+    if args.dataset == 'pop909':
+        files = pickle.load(open("../preprocess_pop909/split.pkl", "rb"))
+        train_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["train_data"]]
+        valid_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["valid_data"]]
+        test_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["test_data"]]
+
+    elif args.dataset == 'emopia':
         train_files = glob.glob(f'Data/Dataset/{dataset}/train/*.mid')
         valid_files = glob.glob(f'Data/Dataset/{dataset}/valid/*.mid')
         test_files = glob.glob(f'Data/Dataset/{dataset}/test/*.mid')
@@ -113,7 +124,7 @@ def main():
     elif args.dataset == 'ASAP':
         files = pickle.load(open('Data/Dataset/ASAP_song.pkl', 'rb'))
         files = [f'Dataset/{dataset}/{file}' for file in files]
-
+    
     elif args.input_dir:
         files = glob.glob(f'{args.input_dir}/*.mid')
 

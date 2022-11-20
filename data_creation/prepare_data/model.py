@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 from tqdm import tqdm
-import data_creation.prepare_data.utils as utils
+import utils
 
 Composer = {
     "Bethel": 0,
@@ -109,4 +109,110 @@ class CP(object):
         all_words = np.array(all_words)
         all_ys = np.array(all_ys)
 
+        return all_words, all_ys
+
+class REMI(object):
+    def __init__(self, dict):
+        # load dictionary
+        self.event2word, self.word2event = pickle.load(open(dict, 'rb'))
+        self.pad_word = self.event2word['Pad None'] 
+
+    def extract_events(self, input_path, task):
+        note_items, tempo_items = utils.read_items(input_path)
+        assert len(note_items)
+        note_items = utils.quantize_items(note_items)
+        max_time = note_items[-1].end
+        items = tempo_items + note_items
+        groups = utils.group_items(items, max_time)
+        events = utils.item2event_remi(groups, task)
+        return events
+
+    def padding(self, data, max_len, ans=False):
+        pad_len = max_len - len(data)
+        if not ans:
+            for _ in range(pad_len):
+                data.append(self.pad_word)
+        else:
+            for _ in range(pad_len):
+                data.append(0)
+        return data
+
+    def prepare_data(self, midi_paths, task, max_len):
+        print("task: ", task)
+        if task == "melody" or task == "velocity":
+            all_words, all_ys = [], []
+            for path in midi_paths:
+                print("path: ", path)
+                events = self.extract_events(path, task)
+                words, ys = [], []
+                for event in events:
+                    e = '{} {}'.format(event.name, event.value)
+                    if e in self.event2word:
+                        words.append(self.event2word[e])
+                        ys.append(event.Type + 1) 
+                    else:
+                        # OOV
+                        if event.name == 'Velocity':
+                            # replace with max velocity based on our training data
+                            words.append(self.event2word['Velocity 0'])
+                            ys.append(0)
+                        else:
+                            # something is wrong
+                            # you should handle it for your own purpose
+                            print('something is wrong! {}'.format(e))
+        
+                # slice to chunks so that max_len = 512
+                slice_words, slice_ys = [], []
+                for i in range(0, len(words), max_len):
+                    slice_words.append(words[i:i+max_len])
+                    slice_ys.append(ys[i:i+max_len])
+                
+                # padding
+                if len(slice_words[-1]) < max_len:
+                    slice_words[-1] = self.padding(slice_words[-1], max_len, ans=False)
+                    slice_ys[-1] = self.padding(slice_ys[-1], max_len, ans=True)
+                
+                all_words = all_words + slice_words
+                all_ys = all_ys + slice_ys
+        else:
+            all_words, all_ys = [], []
+            for path in midi_paths:
+                print("path: ", path)
+                name = path.split('/')[-1].split('_')[0]
+                # fix file name typo
+                if task == "composer":
+                    if name == "Hisaisi":
+                        name = "Hisaishi"
+                    if name == "Ryuici":
+                        name = "Ryuichi"
+                events = self.extract_events(path, task)
+                words = []
+                for event in events:
+                    e = '{} {}'.format(event.name, event.value)
+                    if e in self.event2word:
+                        words.append(self.event2word[e])
+                    else:
+                        print('something is wrong! {}'.format(e))
+                slice_words, slice_ys = [], []
+                for i in range(0, len(words), max_len):
+                    slice_words.append(words[i:i + max_len])
+                    if task == "composer":
+                        slice_ys.append(Composer[name])
+                    elif task == "emotion":
+                         slice_ys.append(Emotion[name])
+                
+                # padding
+                if task == 'composer' and len(slice_words[-1]) < 512:
+                    if len(slice_words[-1]) < 256:
+                        slice_words.pop()
+                        slice_ys.pop()
+                    else:
+                        slice_words[-1] = self.padding(slice_words[-1], max_len, ans=False)
+                elif len(slice_words[-1]) < 512:
+                    slice_words[-1] = self.padding(slice_words[-1], max_len, ans=False)
+                all_words.extend(slice_words)
+                all_ys.extend(slice_ys)
+        all_words = np.array(all_words)
+        all_ys = np.array(all_ys)
+        print(all_words.shape, all_words)
         return all_words, all_ys
