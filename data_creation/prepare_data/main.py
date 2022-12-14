@@ -17,6 +17,7 @@ def get_args():
     ### path ###
     parser.add_argument('--dict', type=str, default='./dict/remi.pkl')
     parser.add_argument('--dataset', type=str, choices=["pop909", "pop1k7", "ASAP", "pianist8", "emopia"])
+    parser.add_argument('--data_path', type=str, required=True, description="The path of dataset")
     parser.add_argument('--input_dir', type=str, default='')
     parser.add_argument('--input_file', type=str, default='')
 
@@ -92,14 +93,14 @@ def main():
     else:
         model = REMI(dict=args.dict)
 
-    if args.dataset == 'pop909':
-        dataset = 'pop909_processed'
-    elif args.dataset == 'emopia':
-        dataset = 'EMOPIA_1.0'
-    elif args.dataset == 'pianist8':
-        dataset = 'joann8512-Pianist8-ab9f541'
-    elif args.dataset == 'ASAP':
-        dataset = 'asap_dataset'
+    # if args.dataset == 'pop909':
+    #     dataset = 'pop909_processed'
+    # elif args.dataset == 'emopia':
+    #     dataset = 'EMOPIA_1.0'
+    # elif args.dataset == 'pianist8':
+    #     dataset = 'joann8512-Pianist8-ab9f541'
+    # elif args.dataset == 'ASAP':
+    #     dataset = 'asap_dataset'
         
 
     if args.dataset == 'pop909':
@@ -109,21 +110,22 @@ def main():
         test_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["test_data"]]
 
     elif args.dataset == 'emopia':
-        train_files = glob.glob(f'Data/Dataset/{dataset}/train/*.mid')
-        valid_files = glob.glob(f'Data/Dataset/{dataset}/valid/*.mid')
-        test_files = glob.glob(f'Data/Dataset/{dataset}/test/*.mid')
+        train_files = glob.glob(f'{args.data_path}/train/*.mid')
+        valid_files = glob.glob(f'{args.data_path}/valid/*.mid')
+        test_files = glob.glob(f'{args.data_path}/test/*.mid')
 
-    elif args.dataset == 'pianist8':
-        train_files = glob.glob(f'Data/Dataset/{dataset}/train/*/*.mid')
-        valid_files = glob.glob(f'Data/Dataset/{dataset}/valid/*/*.mid')
-        test_files = glob.glob(f'Data/Dataset/{dataset}/test/*/*.mid')
+    elif args.dataset == "pianist8":
+        train_files = glob.glob(f'{args.data_path}/train/*/*.mid')
+        valid_files = glob.glob(f'{args.data_path}/valid/*/*.mid')
+        test_files = glob.glob(f'{args.data_path}/test/*/*.mid')
+        print(len(train_files))
 
     elif args.dataset == 'pop1k7':
         files = glob.glob('Data/Dataset/dataset/midi_transcribed/*/*.midi')
 
     elif args.dataset == 'ASAP':
         files = pickle.load(open('Data/Dataset/ASAP_song.pkl', 'rb'))
-        files = [f'Dataset/{dataset}/{file}' for file in files]
+        files = [f'{args.data_path}/{file}' for file in files]
     
     elif args.input_dir:
         files = glob.glob(f'{args.input_dir}/*.mid')
