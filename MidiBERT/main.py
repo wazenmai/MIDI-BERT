@@ -7,17 +7,19 @@ import json
 
 from torch.utils.data import DataLoader
 from transformers import BertConfig
-from model import MidiBert
-from trainer import BERTTrainer
+from model import MidiBert_CP, MidiBert_remi
+from trainer import BERTTrainer_CP, BERTTrainer_remi
 from midi_dataset import MidiDataset
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='')
+    ### representation ###
+    parser.add_argument('--repr', type=str, choices=['CP', 'remi'], required=True) 
 
     ### path setup ###
-    parser.add_argument('--dict_file', type=str, default='data_creation/prepare_data/dict/CP.pkl')
-    parser.add_argument('--name', type=str, default='MidiBert')
+    parser.add_argument('--dict_dir', type=str, default='data_creation/prepare_data/dict')
+    parser.add_argument('--name', type=str, default='MidiBert', help="name of the folder for training logging")
 
     ### pre-train dataset ###
     parser.add_argument("--datasets", type=str, nargs='+', default=['pop909','composer', 'pop1k7', 'ASAP', 'emopia'])
@@ -33,23 +35,24 @@ def get_args():
     
     ### cuda ###
     parser.add_argument("--cpu", action="store_true")   # default: False
-    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1,2,3], help="CUDA device ids")
+    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0], help="CUDA device ids")
 
     args = parser.parse_args()
 
     return args
 
 
-def load_data(datasets):
+def load_data(datasets, rep):
     to_concat = []
-    root = 'Data/CP_data'
+    root = f'Data/{rep}_data'
 
     for dataset in datasets:
         if dataset in {'pop909', 'composer', 'emopia'}:
             X_train = np.load(os.path.join(root, f'{dataset}_train.npy'), allow_pickle=True)
-            X_valid = np.load(os.path.join(root, f'{dataset}_valid.npy'), allow_pickle=True)
-            X_test = np.load(os.path.join(root, f'{dataset}_test.npy'), allow_pickle=True)
-            data = np.concatenate((X_train, X_valid, X_test), axis=0)
+            #X_valid = np.load(os.path.join(root, f'{dataset}_valid.npy'), allow_pickle=True)
+            #X_test = np.load(os.path.join(root, f'{dataset}_test.npy'), allow_pickle=True)
+            #data = np.concatenate((X_train, X_valid, X_test), axis=0)
+            data = X_train
             
         elif dataset == 'pop1k7' or dataset == 'ASAP':
             data = np.load(os.path.join(root, f'{dataset}.npy'), allow_pickle=True)
@@ -73,13 +76,15 @@ def load_data(datasets):
 
 def main():
     args = get_args()
+    rep = args.repr
+    print('-'*50, rep, '-'*50)
 
     print("Loading Dictionary")
-    with open(args.dict_file, 'rb') as f:
+    with open(f'{args.dict_dir}/{rep}.pkl', 'rb') as f:
         e2w, w2e = pickle.load(f)
 
     print("\nLoading Dataset", args.datasets) 
-    X_train, X_val = load_data(args.datasets)
+    X_train, X_val = load_data(args.datasets, rep)
     
     trainset = MidiDataset(X=X_train)
     validset = MidiDataset(X=X_val) 
@@ -89,20 +94,23 @@ def main():
     valid_loader = DataLoader(validset, batch_size=args.batch_size, num_workers=args.num_workers)
     print("   len of valid_loader",len(valid_loader))
 
-    print("\nBuilding BERT model")
+    print("\nBuilding BERT model and Trainer")
     configuration = BertConfig(max_position_embeddings=args.max_seq_len,
                                 position_embedding_type='relative_key_query',
                                 hidden_size=args.hs)
-    midibert = MidiBert(bertConfig=configuration, e2w=e2w, w2e=w2e)
 
-    print("\nCreating BERT Trainer")
-    trainer = BERTTrainer(midibert, train_loader, valid_loader, args.lr, args.batch_size, args.max_seq_len, args.mask_percent, args.cpu, args.cuda_devices)
+    if rep == 'CP':
+        midibert = MidiBert_CP(bertConfig=configuration, e2w=e2w, w2e=w2e)
+        trainer = BERTTrainer_CP(midibert, train_loader, valid_loader, rep, args.lr, args.batch_size, args.max_seq_len, args.mask_percent, args.cpu, args.cuda_devices)
+    elif rep == 'remi':
+        midibert = MidiBert_remi(bertConfig=configuration, e2w=e2w, w2e=w2e)
+        trainer = BERTTrainer_remi(midibert, train_loader, valid_loader, rep, args.lr, args.batch_size, args.max_seq_len, args.mask_percent, args.cpu, args.cuda_devices)
     
     print("\nTraining Start")
-    save_dir = 'MidiBERT/result/pretrain/' + args.name
+    save_dir = f'MidiBERT/result/pretrain_{rep}/{args.name}'
     os.makedirs(save_dir, exist_ok=True)
     filename = os.path.join(save_dir, 'model.ckpt')
-    print("   save model at {}".format(filename))
+    print("   will save model at {}".format(filename))
 
     best_acc, best_epoch = 0, 0
     bad_cnt = 0
@@ -114,8 +122,11 @@ def main():
         train_loss, train_acc = trainer.train()
         valid_loss, valid_acc = trainer.valid()
 
-        weighted_score = [x*y for (x,y) in zip(valid_acc, midibert.n_tokens)]
-        avg_acc = sum(weighted_score)/sum(midibert.n_tokens)
+        if rep == 'CP':
+            weighted_score = [x*y for (x,y) in zip(valid_acc, midibert.n_tokens)]
+            avg_acc = sum(weighted_score)/sum(midibert.n_tokens)
+        elif rep == 'remi':
+            avg_acc = valid_acc
         
         is_best = avg_acc > best_acc
         best_acc = max(avg_acc, best_acc)

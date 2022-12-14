@@ -10,16 +10,17 @@ import sys
 import shutil
 import copy
 
-from MidiBERT.model import MidiBert
+from MidiBERT.model import MidiBert_CP, MidiBert_remi
 from MidiBERT.modelLM import MidiBertLM
 
 
 class BERTTrainer:
-    def __init__(self, midibert: MidiBert, train_dataloader, valid_dataloader, 
+    def __init__(self, midibert, train_dataloader, valid_dataloader, rep,
                 lr, batch, max_seq_len, mask_percent, cpu, cuda_devices=None):
+
         self.device = torch.device("cuda" if torch.cuda.is_available() and not cpu else 'cpu')
         self.midibert = midibert        # save this for ckpt
-        self.model = MidiBertLM(midibert).to(self.device)
+        self.model = MidiBertLM(midibert, rep).to(self.device)
         self.total_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         print('# total parameters:', self.total_params)
 
@@ -63,13 +64,41 @@ class BERTTrainer:
         return valid_loss, valid_acc
 
     def iteration(self, training_data, max_seq_len, train=True):
+        raise NotImplementedError()
+
+    def save_checkpoint(self, epoch, best_acc, valid_acc, 
+                        valid_loss, train_loss, is_best, filename):
+        state = {
+            'epoch': epoch + 1,
+            'state_dict': self.midibert.state_dict(),
+            'best_acc': best_acc,
+            'valid_acc': valid_acc,
+            'valid_loss': valid_loss,
+            'train_loss': train_loss,
+            'optimizer' : self.optim.state_dict()
+        }
+
+        torch.save(state, filename)
+
+        best_mdl = filename.split('.')[0]+'_best.ckpt'
+        if is_best:
+            shutil.copyfile(filename, best_mdl)
+
+
+class BERTTrainer_CP(BERTTrainer):
+    def __init__(self, midibert, train_dataloader, valid_dataloader, rep,
+                lr, batch, max_seq_len, mask_percent, cpu, cuda_devices=None):
+        super().__init__(midibert, train_dataloader, valid_dataloader, rep,
+                lr, batch, max_seq_len, mask_percent, cpu, cuda_devices)
+
+    def iteration(self, training_data, max_seq_len, train=True):
         pbar = tqdm.tqdm(training_data, disable=False)
 
         total_acc, total_losses = [0]*len(self.midibert.e2w), 0
         
         for ori_seq_batch in pbar:
             batch = ori_seq_batch.shape[0]
-            ori_seq_batch = ori_seq_batch.to(self.device)  # (batch, seq_len, 4) 
+            ori_seq_batch = ori_seq_batch.to(self.device)  # (batch, seq_len, n_tok) 
             input_ids = copy.deepcopy(ori_seq_batch)
             loss_mask = torch.zeros(batch, max_seq_len)
             
@@ -105,7 +134,7 @@ class BERTTrainer:
 
             # accuracy
             all_acc = []
-            for i in range(4):
+            for i in range(len(self.midibert.classes)):
                 acc = torch.sum((ori_seq_batch[:,:,i] == outputs[:,:,i]).float() * loss_mask)
                 acc /= torch.sum(loss_mask)
                 all_acc.append(acc)
@@ -113,7 +142,7 @@ class BERTTrainer:
 
             # reshape (b, s, f) -> (b, f, s)
             for i, etype in enumerate(self.midibert.e2w):
-                #print('before',y[i][:,...].shape)   # each: (4,512,5), (4,512,20), (4,512,90), (4,512,68)
+                #print('before',y[i][:,...].shape)   # each: (n_tok,512,n_word) 
                 y[i] = y[i][:, ...].permute(0, 2, 1)
 
             # calculate losses
@@ -141,21 +170,71 @@ class BERTTrainer:
         
         return round(total_losses/len(training_data),3), [round(x.item()/len(training_data),3) for x in total_acc]
 
-    def save_checkpoint(self, epoch, best_acc, valid_acc, 
-                        valid_loss, train_loss, is_best, filename):
-        state = {
-            'epoch': epoch + 1,
-            'state_dict': self.midibert.state_dict(),
-            'best_acc': best_acc,
-            'valid_acc': valid_acc,
-            'valid_loss': valid_loss,
-            'train_loss': train_loss,
-            'optimizer' : self.optim.state_dict()
-        }
 
-        torch.save(state, filename)
+class BERTTrainer_remi(BERTTrainer):
+    def __init__(self, midibert, train_dataloader, valid_dataloader, rep,
+                lr, batch, max_seq_len, mask_percent, cpu, cuda_devices=None):
+        super().__init__(midibert, train_dataloader, valid_dataloader, rep,
+                lr, batch, max_seq_len, mask_percent, cpu, cuda_devices)
 
-        best_mdl = filename.split('.')[0]+'_best.ckpt'
-        if is_best:
-            shutil.copyfile(filename, best_mdl)
+    def iteration(self, training_data, max_seq_len, train=True):
+        pbar = tqdm.tqdm(training_data, disable=False)
 
+        total_acc, total_loss = 0, 0
+        
+        for ori_seq_batch in pbar:
+            batch = ori_seq_batch.shape[0]
+            ori_seq_batch = ori_seq_batch.to(self.device)  # (batch, seq_len, n_tok) 
+            input_ids = copy.deepcopy(ori_seq_batch)
+            loss_mask = torch.zeros(batch, max_seq_len)
+            
+            for b in range(batch):
+                # get index for masking
+                mask80, rand10, cur10 = self.get_mask_ind()
+                # apply mask, random, remain current token
+                for i in mask80:
+                    mask_word = torch.tensor(self.midibert.mask_word).to(self.device)
+                    input_ids[b][i] = mask_word 
+                    loss_mask[b][i] = 1 
+                for i in rand10:
+                    rand_word = torch.tensor(random.choice(range(len(self.midibert.e2w))))
+                    input_ids[b][i] = rand_word
+                    loss_mask[b][i] = 1 
+                for i in cur10:
+                    loss_mask[b][i] = 1
+            
+            loss_mask = loss_mask.to(self.device)      
+
+            # avoid attend to pad word
+            attn_mask = (ori_seq_batch != self.midibert.pad_word).float().to(self.device)
+            
+            y = self.model.forward(input_ids, attn_mask)
+
+            # get the most likely choice with max
+            output = np.argmax(y.cpu().detach().numpy(), axis=-1)
+            output = torch.from_numpy(output).to(self.device) # (batch, seq_len)
+
+            # accuracy
+            acc = torch.sum((ori_seq_batch == output).float() * loss_mask)
+            acc /= torch.sum(loss_mask)
+            total_acc += acc.item()
+
+            # reshape (b, s, f) -> (b, f, s)
+            y = y[:, ...].permute(0, 2, 1)
+
+            # calculate losses
+            loss = self.compute_loss(y, ori_seq_batch, loss_mask)
+
+            # udpate only in train
+            if train:
+                self.model.zero_grad()
+                loss.backward()
+                clip_grad_norm_(self.model.parameters(), 3.0)
+                self.optim.step()
+
+            # acc
+            sys.stdout.write('Loss: {:06f} | acc: {:06f} \r'.format(loss, acc))
+
+            total_loss += loss.item()
+        
+        return round(total_loss/len(training_data),3), round(total_acc/len(training_data),3)

@@ -17,7 +17,7 @@ class Embeddings(nn.Module):
 
 
 # BERT model: similar approach to "felix"
-class MidiBert(nn.Module):
+class MidiBert_CP(nn.Module):
     def __init__(self, bertConfig, e2w, w2e):
         super().__init__()
         
@@ -26,14 +26,14 @@ class MidiBert(nn.Module):
         self.hidden_size = bertConfig.hidden_size
         self.bertConfig = bertConfig
 
-        # token types: [Bar, Position, Pitch, Duration]
-        self.n_tokens = []      # [3,18,88,66]
-        self.classes = ['Bar', 'Position', 'Pitch', 'Duration']
-        for key in self.classes:
-            self.n_tokens.append(len(e2w[key]))
-        self.emb_sizes = [256, 256, 256, 256]
+        # token types: [Bar, Position, Pitch, Velocity, Duration, Tempo]
+        self.n_tokens = []      
         self.e2w = e2w
         self.w2e = w2e
+        self.classes = list(self.e2w.keys())
+        for key in self.classes:
+            self.n_tokens.append(len(e2w[key]))
+        self.emb_sizes = [256] * len(self.classes)
 
         # for deciding whether the current input_ids is a <PAD> token
         self.bar_pad_word = self.e2w['Bar']['Bar <PAD>']        
@@ -64,5 +64,45 @@ class MidiBert(nn.Module):
         return y
     
     def get_rand_tok(self):
-        c1,c2,c3,c4 = self.n_tokens[0], self.n_tokens[1], self.n_tokens[2], self.n_tokens[3]
-        return np.array([random.choice(range(c1)),random.choice(range(c2)),random.choice(range(c3)),random.choice(range(c4))])
+        res = []
+        for n_tok in self.n_tokens:
+            res.append(random.choice(range(n_tok)))
+        return np.array(res)
+
+
+class MidiBert_remi(nn.Module):
+    def __init__(self, bertConfig, e2w, w2e):
+        super().__init__()
+        
+        self.bert = BertModel(bertConfig)
+        bertConfig.d_model = bertConfig.hidden_size
+        self.hidden_size = bertConfig.hidden_size
+        self.bertConfig = bertConfig
+
+        # token types: [Bar, Position, Pitch, Duration]
+        self.n_token = len(e2w)
+        self.emb_size = 256
+        self.e2w = e2w
+        self.w2e = w2e
+
+        # for deciding whether the current input_ids is a <PAD> token
+        self.pad_word = self.e2w['Pad None']        
+        self.mask_word = self.e2w['Mask None']
+        
+        # word_emb: embeddings to change token ids into embeddings
+        self.word_emb = Embeddings(self.n_token, self.emb_size) 
+
+        # linear layer to merge embeddings from different token types 
+        self.in_linear = nn.Linear(self.emb_size, bertConfig.d_model)
+
+
+    def forward(self, input_id, attn_mask=None, output_hidden_states=True):
+        # convert input_ids into embeddings and merge them through linear layer
+        emb = self.word_emb(input_id)
+        emb_linear = self.in_linear(emb)
+        
+        # feed to bert 
+        y = self.bert(inputs_embeds=emb_linear, attention_mask=attn_mask, output_hidden_states=output_hidden_states)
+        #y = y.last_hidden_state         # (batch_size, seq_len, 768)
+
+        return y
