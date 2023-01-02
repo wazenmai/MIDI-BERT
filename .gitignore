@@ -2,9 +2,8 @@ Data/Dataset/asap_dataset
 Data/Dataset/joann8512-Pianist8-ab9f541
 Data/Dataset/EMOPIA_1.0
 
-Data/*
-
 data_creation/prepare_data/__pycache__
+data_creation/prepare_data/dict/*.txt
 
 baseline/
 
