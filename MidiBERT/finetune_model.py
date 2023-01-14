@@ -6,8 +6,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from MidiBERT.model import MidiBert
-
 
 class TokenClassification(nn.Module):
     def __init__(self, midibert, class_num, hs):
@@ -40,7 +38,7 @@ class SequenceClassification(nn.Module):
             nn.Linear(256, class_num)
         )
 
-    def forward(self, x, attn, layer):             # x: (batch, 512, 4)
+    def forward(self, x, attn, layer):             # x: (batch, 512, _)
         x = self.midibert(x, attn, output_hidden_states=True)   # (batch, 512, 768)
         #y = y.last_hidden_state         # (batch_size, seq_len, 768)
         x = x.hidden_states[layer]

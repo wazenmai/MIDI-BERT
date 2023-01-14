@@ -28,10 +28,13 @@ def get_args():
     parser.add_argument('--num_workers', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=12)
     parser.add_argument('--mask_percent', type=float, default=0.15, help="Up to `valid_seq_len * target_max_percent` tokens will be masked out for prediction")
-    parser.add_argument('--max_seq_len', type=int, default=512, help='all sequences are padded to `max_seq_len`')
     parser.add_argument('--hs', type=int, default=768)      # hidden state
     parser.add_argument('--epochs', type=int, default=500, help='number of training epochs')
     parser.add_argument('--lr', type=float, default=2e-5, help='initial learning rate')
+    parser.add_argument('--max_seq_len', type=int, default=512, help='max sequence length in each batch')
+    # if you'd like to adjust max_seq_len, 
+    # please note: composer data is preprocessed in a manner that if data will be discarded if length < 256 (half of max_seq_len)
+    # this code only reshapes the input data, it does not bring back discarded data
     
     ### cuda ###
     parser.add_argument("--cpu", action="store_true")   # default: False
@@ -42,21 +45,18 @@ def get_args():
     return args
 
 
-def load_data(datasets, rep):
+def load_data(datasets, rep): 
     to_concat = []
     root = f'Data/{rep}_data'
 
     for dataset in datasets:
         if dataset in {'pop909', 'composer', 'emopia'}:
             X_train = np.load(os.path.join(root, f'{dataset}_train.npy'), allow_pickle=True)
-            #X_valid = np.load(os.path.join(root, f'{dataset}_valid.npy'), allow_pickle=True)
-            #X_test = np.load(os.path.join(root, f'{dataset}_test.npy'), allow_pickle=True)
-            #data = np.concatenate((X_train, X_valid, X_test), axis=0)
             data = X_train
-            
         elif dataset == 'pop1k7' or dataset == 'ASAP':
             data = np.load(os.path.join(root, f'{dataset}.npy'), allow_pickle=True)
-
+        else:
+            raise NotImplementedError()
         print(f'   {dataset}: {data.shape}')
         to_concat.append(data)
 
@@ -84,7 +84,7 @@ def main():
         e2w, w2e = pickle.load(f)
 
     print("\nLoading Dataset", args.datasets) 
-    X_train, X_val = load_data(args.datasets, rep)
+    X_train, X_val = load_data(args.datasets, rep) 
     
     trainset = MidiDataset(X=X_train)
     validset = MidiDataset(X=X_val) 
