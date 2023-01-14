@@ -57,6 +57,8 @@ class FinetuneTrainer:
 
     def save_checkpoint(self, epoch, train_acc, valid_acc, 
                         valid_loss, train_loss, is_best, filename):
+
+        state_dict = self.model.module.state_dict() if hasattr(self.model, 'module') else self.model.state_dict() 
         state = {
             'epoch': epoch + 1,
             'state_dict': self.model.state_dict(),      # if multiple GPU: self.model.module.state_dict() 

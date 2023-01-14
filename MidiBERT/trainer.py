@@ -68,9 +68,12 @@ class BERTTrainer:
 
     def save_checkpoint(self, epoch, best_acc, valid_acc, 
                         valid_loss, train_loss, is_best, filename):
+
+        state_dict = self.midibert.module.state_dict() if hasattr(self.midibert, 'module') else self.midibert.state_dict() 
+
         state = {
             'epoch': epoch + 1,
-            'state_dict': self.midibert.state_dict(),
+            'state_dict': state_dict,
             'best_acc': best_acc,
             'valid_acc': valid_acc,
             'valid_loss': valid_loss,

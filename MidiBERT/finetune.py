@@ -139,7 +139,10 @@ def main():
         best_mdl = args.ckpt
         print("   Loading pre-trained model from", best_mdl.split('/')[-1])
         checkpoint = torch.load(best_mdl, map_location='cpu')
-        midibert.load_state_dict(checkpoint['state_dict'])
+        if hasattr(midibert, 'module'):
+            midibert.module.load_state_dict(checkpoint['state_dict'])
+        else:
+            midibert.load_state_dict(checkpoint['state_dict'])
     
     index_layer = int(args.index_layer)-13
     print("\nCreating Finetune Trainer using index layer", index_layer)
