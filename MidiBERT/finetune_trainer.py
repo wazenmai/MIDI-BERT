@@ -89,7 +89,7 @@ class FinetuneTrainer:
             if not seq:
                 attn = (y != 0).float().to(self.device)   # (batch,512)
             else:   
-                attn = torch.ones((batch, 512))     # attend each of them
+                attn = torch.ones((batch, 512)).to(self.device)     # attend each of them
 
             y_hat = self.model.forward(x, attn, self.layer)     # seq: (batch, class_num) / token: (batch, 512, class_num)
 
