@@ -41,7 +41,7 @@ def get_args():
     
     ### cuda ###
     parser.add_argument("--cpu", action="store_true") # default=False
-    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1], help="CUDA device ids")
+    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1,2,3], help="CUDA device ids")
 
     args = parser.parse_args()
 
@@ -166,7 +166,7 @@ def main():
             train_loss, train_acc = trainer.train()
             valid_loss, valid_acc = trainer.valid()
 
-            is_best = valid_acc >= best_acc
+            is_best = valid_acc > best_acc
             best_acc = max(valid_acc, best_acc)
             
             if is_best:
