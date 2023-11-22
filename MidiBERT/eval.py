@@ -203,16 +203,18 @@ def main():
     print('\nLoad a finetuned model from', args.ckpt)  
     best_mdl = args.ckpt 
     checkpoint = torch.load(best_mdl, map_location='cpu')
-    model.load_state_dict(checkpoint['state_dict'])
+    if "module" in list(checkpoint["state_dict"].keys())[0]:
+        # remove module
+        from collections import OrderedDict
+        new_state_dict = OrderedDict()
+        for k, v in checkpoint['state_dict'].items():
+            name = k[7:]
+            new_state_dict[name] = v
+        model.load_state_dict(new_state_dict)
+    else:
+        model.load_state_dict(checkpoint['state_dict'])
     model = model.to(device)
 
-    # remove module
-    #from collections import OrderedDict
-    #new_state_dict = OrderedDict()
-    #for k, v in checkpoint['state_dict'].items():
-    #    name = k[7:]
-    #    new_state_dict[name] = v
-    #model.load_state_dict(new_state_dict)
 
     index_layer = int(args.index_layer)-13
     #trainer = FinetuneTrainer(midibert, train_loader, valid_loader, test_loader, index_layer, args.lr, args.class_num,
