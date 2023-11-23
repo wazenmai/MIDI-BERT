@@ -12,13 +12,13 @@ def get_args():
     parser = argparse.ArgumentParser(description='')
     ### mode ###
     parser.add_argument('--task', default='', choices=['melody', 'velocity', 'composer', 'emotion'])
-    parser.add_argument('--mode', choices=['cp', 'remi'], required=True)
+    parser.add_argument('--mode', choices=['CP', 'remi'], required=True)
 
     ### path ###
     parser.add_argument('--dict_dir', type=str, default='data_creation/prepare_data/dict')
     parser.add_argument('--dict', type=str, default='')
     parser.add_argument('--dataset', type=str, choices=["pop909", "pop1k7", "ASAP", "pianist8", "emopia"])
-    parser.add_argument('--data_path', type=str, required=True, description="The path of dataset")
+    parser.add_argument('--data_path', type=str, required=True, help="The path of dataset")
     parser.add_argument('--input_dir', type=str, default='')
     parser.add_argument('--input_file', type=str, default='')
 
@@ -95,7 +95,7 @@ def main():
     pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     
     # initialize model
-    if (args.mode == 'cp'):
+    if (args.mode == 'CP'):
         model = CP(dict=args.dict)
     else:
         model = REMI(dict=args.dict)
@@ -112,9 +112,12 @@ def main():
 
     if args.dataset == 'pop909':
         files = pickle.load(open("data_creation/preprocess_pop909/split.pkl", "rb"))
-        train_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["train_data"]]
-        valid_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["valid_data"]]
-        test_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["test_data"]]
+        train_files = [f'{args.data_path}/train/{file}' for file in files["train_data"]]
+        valid_files = [f'{args.data_path}/valid/{file}' for file in files["valid_data"]]
+        test_files = [f'{args.data_path}/test/{file}' for file in files["test_data"]]
+        # train_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["train_data"]]
+        # valid_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["valid_data"]]
+        # test_files = [f'Data/Dataset/POP909-Dataset/POP909/{file.split(".")[0]}/{file}' for file in files["test_data"]]
 
     elif args.dataset == 'emopia':
         train_files = glob.glob(f'{args.data_path}/train/*.mid')

@@ -75,7 +75,13 @@ class CP(object):
                     if e.name == 'Pitch':
                         to_class = e.Type
                 words.append(nts)
-                if task == 'melody' or task == 'velocity':
+                if task == 'melody': # melody (0) and brigde (1) are melody (1), accompaniment (2) is accompaniment (2)
+                    if to_class == 0 or to_class == 1:
+                        ys.append(1)
+                    else:
+                        ys.append(2)
+                    # ys.append(to_class+1)
+                elif task == 'velocity':
                     ys.append(to_class+1)
 
             # slice to chunks so that max length = max_len (default: 512)

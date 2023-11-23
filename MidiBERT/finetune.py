@@ -41,12 +41,12 @@ def get_args():
     
     ### cuda ###
     parser.add_argument("--cpu", action="store_true") # default=False
-    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1], help="CUDA device ids")
+    parser.add_argument("--cuda_devices", type=int, nargs='+', default=[0,1,2], help="CUDA device ids")
 
     args = parser.parse_args()
 
     if args.task == 'melody':
-        args.class_num = 4
+        args.class_num = 3 # 4
     elif args.task == 'velocity':
         args.class_num = 7
     elif args.task == 'composer':
