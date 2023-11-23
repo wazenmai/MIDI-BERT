@@ -5,6 +5,8 @@ Data/Dataset/EMOPIA_1.0
 data_creation/prepare_data/__pycache__
 data_creation/prepare_data/dict/*.txt
 
+MidiBERT/result/
+
 baseline/
 
 *.pyc
