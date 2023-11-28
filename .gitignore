@@ -9,6 +9,9 @@ MidiBERT/result/
 
 baseline/
 
+melody_extraction/pianoroll/image/
+
+*log*
 *.pyc
 *__pycache__/
 *.ckpt
