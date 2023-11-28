@@ -90,6 +90,8 @@ def main():
     
         f.write('\navg accuracy (melody only):' + str((TP2+TN2)/(TP2+TN2+FP2+FN2)) + '\n')
         f.write(f'(melody only) TP: {TP2}, FP: {FP2}, FN: {FN2}, TN:{TN2} \n')
+        f.write(f'(melody & bridge) TP: {TP1}, FP: {FP1}, FN: {FN1}, TN:{TN1} \n')
+        f.write(f'(melody & bridge): accuracy: {(TP1+TN1)/(TP1+TN1+FP1+FN1)}, precision: {TP1/(TP1+FP1)}, recall: {TP1/(TP1+FN1)}, f1_score: {2*TP1/(2*TP1+FP1+FN1)}\n')
         f.write('avg accuracy (melody & bridge):' + str((TP1+TN1)/(TP1+TN1+FP1+FN1)) + '\n')
 
 

@@ -100,6 +100,7 @@ class Event(object):
 
 
 def item2event(groups, task):
+    # [Bar, Position, Pitch, Velocity, Duration, Tempo]
     events = []
     n_downbeat = 0
     assert groups[0][1].name == "Tempo"
